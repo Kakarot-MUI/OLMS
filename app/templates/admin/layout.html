@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="admin-wrapper">
+    {# ── Sidebar ─────────────────────────────────────────────────── #}
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-book-half"></i>
+            <span>Smart Library</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="nav-section">Main</li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            </li>
+
+            <li class="nav-section">Management</li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.books') }}"><i class="bi bi-journal-bookmark"></i> Books</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i> Members</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.scan_book') }}"><i class="bi bi-qr-code-scan"></i> Scan QR Code</a>
+            </li>
+
+            <li class="nav-section">Circulation</li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.issue_book') }}"><i class="bi bi-box-arrow-right"></i> Issue Book</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.issued_books') }}"><i class="bi bi-list-check"></i> Issued Books</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.lookup_code') }}"><i class="bi bi-upc-scan"></i> Lookup Code</a>
+            </li>
+
+            <li class="nav-section">Analytics</li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.reports') }}"><i class="bi bi-graph-up"></i> Reports</a>
+            </li>
+
+            <li class="nav-section">Account</li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.chat_inbox') }}"><i class="bi bi-chat-dots"></i> Chat</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            </li>
+        </ul>
+    </aside>
+
+    {# ── Main Content ────────────────────────────────────────────── #}
+    <div class="admin-content">
+        <header class="admin-topbar">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none sidebar-toggle" id="sidebarToggle"
+                style="display:none;">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted" style="font-size:.85rem;">
+                    <i class="bi bi-person-circle me-1"></i>{{ current_user.name }}
+                </span>
+            </div>
+        </header>
+        <main class="admin-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

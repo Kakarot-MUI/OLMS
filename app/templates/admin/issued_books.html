@@ -1,0 +1,129 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Issued Books{% endblock %}
+{% block page_title %}Issued Books{% endblock %}
+
+{% block content %}
+{# ── Status Filter ───────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <p class="text-muted mb-0">{{ pagination.total }} records found</p>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('admin.issued_books') }}"
+            class="btn btn-sm {{ 'btn-primary' if not current_status else 'btn-outline-primary' }}">All</a>
+        <a href="{{ url_for('admin.issued_books', status='issued') }}"
+            class="btn btn-sm {{ 'btn-primary' if current_status == 'issued' else 'btn-outline-primary' }}">Issued</a>
+        <a href="{{ url_for('admin.issued_books', status='overdue') }}"
+            class="btn btn-sm {{ 'btn-primary' if current_status == 'overdue' else 'btn-outline-primary' }}">Overdue</a>
+        <a href="{{ url_for('admin.issued_books', status='returned') }}"
+            class="btn btn-sm {{ 'btn-primary' if current_status == 'returned' else 'btn-outline-primary' }}">Returned</a>
+    </div>
+</div>
+
+{% if pagination.items %}
+<div class="table-olms">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Issue Code</th>
+                    <th>Student Details</th>
+                    <th>Book</th>
+                    <th>Issued On</th>
+                    <th>Due Date</th>
+                    <th>Returned</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for issue in pagination.items %}
+                <tr>
+                    <td>
+                        <code
+                            style="font-weight:600; font-size:.85rem; color:var(--primary); background:var(--primary-light); padding:3px 8px; border-radius:4px;">{{ issue.issue_code }}</code>
+                    </td>
+                    <td>
+                        <strong>{{ issue.user.name }}</strong><br>
+                        <span style="font-size:.8rem; color:var(--text-secondary);">
+                            Roll: {{ issue.user.roll_number or '—' }}
+                            · {{ issue.user.phone or '—' }}<br>
+                            {{ issue.user.department or '—' }}
+                            · Div {{ issue.user.division or '—' }}
+                            · Sem {{ issue.user.semester or '—' }}
+                        </span>
+                    </td>
+                    <td>{{ issue.book.title }}</td>
+                    <td>{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
+                    <td>{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                    <td>{{ issue.return_date.strftime('%b %d, %Y') if issue.return_date else '—' }}</td>
+                    <td>
+                        <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
+                    </td>
+                    <td>
+                        {% if issue.status in ['issued', 'overdue'] %}
+                        <div class="d-flex gap-1">
+                            <a href="{{ url_for('admin.edit_due_date', issue_id=issue.id) }}"
+                                class="btn btn-sm btn-outline-warning" title="Edit due date">
+                                <i class="bi bi-calendar-event"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.return_book', issue_id=issue.id) }}"
+                                data-confirm="Confirm return of '{{ issue.book.title }}'?">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Return book">
+                                    <i class="bi bi-box-arrow-in-left"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="text-muted" style="font-size:.8rem;">Done</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link"
+                href="{{ url_for('admin.issued_books', page=pagination.prev_num, status=current_status) }}"><i
+                    class="bi bi-chevron-left"></i></a>
+        </li>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {{ 'active' if p == pagination.page }}">
+            <a class="page-link" href="{{ url_for('admin.issued_books', page=p, status=current_status) }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link"
+                href="{{ url_for('admin.issued_books', page=pagination.next_num, status=current_status) }}"><i
+                    class="bi bi-chevron-right"></i></a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card-olms">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-inbox d-block"></i>
+            <h5>No records found</h5>
+            <p>No book issue records match the current filter.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

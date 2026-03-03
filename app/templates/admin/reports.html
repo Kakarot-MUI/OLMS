@@ -1,0 +1,122 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+{# ── Summary Cards ───────────────────────────────────────────── #}
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card books">
+            <div class="stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+            <div class="stat-value">{{ stats.total_books }}</div>
+            <div class="stat-label">Total Books</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card users">
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+            <div class="stat-value">{{ stats.total_users }}</div>
+            <div class="stat-label">Total Members</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card issued">
+            <div class="stat-icon"><i class="bi bi-box-arrow-right"></i></div>
+            <div class="stat-value">{{ stats.issued_count }}</div>
+            <div class="stat-label">Currently Issued</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card overdue">
+            <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-value">{{ stats.overdue_count }}</div>
+            <div class="stat-label">Overdue</div>
+        </div>
+    </div>
+</div>
+
+{# ── Overdue Books Table ─────────────────────────────────────── #}
+<div class="card-olms mb-4">
+    <div class="card-header-olms">
+        <i class="bi bi-exclamation-triangle-fill text-danger"></i> Overdue Books
+    </div>
+    <div class="card-body p-0">
+        {% if overdue_books %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.875rem 1rem;">Member</th>
+                        <th style="padding:.875rem 1rem;">Book</th>
+                        <th style="padding:.875rem 1rem;">Issue Date</th>
+                        <th style="padding:.875rem 1rem;">Due Date</th>
+                        <th style="padding:.875rem 1rem;">Days Overdue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in overdue_books %}
+                    {% set days_overdue = (now() - issue.due_date).days if now else 0 %}
+                    <tr>
+                        <td style="padding:.875rem 1rem;"><strong>{{ issue.user.name }}</strong></td>
+                        <td style="padding:.875rem 1rem;">{{ issue.book.title }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                        <td style="padding:.875rem 1rem;">
+                            <span class="badge-status badge-overdue">{{ ((issue.due_date - issue.issue_date).days) }}
+                                days loan</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+            <i class="bi bi-check-circle d-block text-success" style="font-size:2rem;"></i>
+            <h5>No overdue books</h5>
+            <p>All books are returned on time. Great!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Currently Issued Table ──────────────────────────────────── #}
+<div class="card-olms">
+    <div class="card-header-olms">
+        <i class="bi bi-box-arrow-right text-warning"></i> Currently Issued Books
+    </div>
+    <div class="card-body p-0">
+        {% if issued_books %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.875rem 1rem;">Member</th>
+                        <th style="padding:.875rem 1rem;">Book</th>
+                        <th style="padding:.875rem 1rem;">Issue Date</th>
+                        <th style="padding:.875rem 1rem;">Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issued_books %}
+                    <tr>
+                        <td style="padding:.875rem 1rem;"><strong>{{ issue.user.name }}</strong></td>
+                        <td style="padding:.875rem 1rem;">{{ issue.book.title }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+            <i class="bi bi-inbox d-block" style="font-size:2rem;"></i>
+            <h5>No books currently issued</h5>
+            <p>All books are available in the library.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

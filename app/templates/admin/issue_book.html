@@ -1,0 +1,57 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Issue Book{% endblock %}
+{% block page_title %}Issue Book{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-olms">
+            <div class="card-header-olms">
+                <i class="bi bi-box-arrow-right text-primary"></i> Issue a Book
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.user_id.label(class="form-label") }}
+                        {{ form.user_id(class="form-select" + (" is-invalid" if form.user_id.errors else ""),
+                        id="issue-user") }}
+                        {% for error in form.user_id.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.book_id.label(class="form-label") }}
+                        {{ form.book_id(class="form-select" + (" is-invalid" if form.book_id.errors else ""),
+                        id="issue-book") }}
+                        {% for error in form.book_id.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.issue_days.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ form.issue_days(class="form-control" + (" is-invalid" if form.issue_days.errors else ""),
+                            id="issue-days", min="1", max="365") }}
+                            <span class="input-group-text">days</span>
+                        </div>
+                        {% for error in form.issue_days.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                        <small class="text-muted">Default: 14 days. Change to set a custom borrow duration.</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary", id="issue-submit") }}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

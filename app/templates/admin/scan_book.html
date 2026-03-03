@@ -1,0 +1,181 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Scan QR Code{% endblock %}
+{% block page_title %}Scan QR Code{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-olms mb-4">
+            <div class="card-header-olms">
+                <i class="bi bi-qr-code-scan text-primary"></i> Scan Book QR Code
+            </div>
+            <div class="card-body text-center">
+                <p class="text-muted mb-3">Point your camera at the QR code on the book to scan and add it
+                    automatically.</p>
+
+                {# Scanner container #}
+                <div id="qr-reader"
+                    style="width:100%; max-width:500px; margin:0 auto; border-radius:var(--radius); overflow:hidden;">
+                </div>
+
+                {# Manual input fallback #}
+                <div class="mt-3">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#manualInput">
+                        <i class="bi bi-keyboard me-1"></i>Enter QR data manually
+                    </button>
+                    <div class="collapse mt-2" id="manualInput">
+                        <div class="input-group" style="max-width:500px; margin:0 auto;">
+                            <input type="text" class="form-control" id="manual-qr"
+                                placeholder='e.g. {"title":"Book","author":"Author","category":"Fiction","copies":2}'>
+                            <button class="btn btn-primary" type="button"
+                                onclick="processQRData(document.getElementById('manual-qr').value)">
+                                <i class="bi bi-plus-lg me-1"></i>Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Status messages #}
+        <div id="scan-status" style="display:none;" class="mb-4"></div>
+
+        {# Scanned books list #}
+        <div id="scanned-books" style="display:none;">
+            <div class="card-olms">
+                <div class="card-header-olms">
+                    <i class="bi bi-check2-circle text-success"></i> Books Added This Session
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Copies</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scanned-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {# Supported formats info #}
+        <div class="card-olms mt-4">
+            <div class="card-body" style="font-size:.875rem;">
+                <h6 class="fw-bold"><i class="bi bi-info-circle text-primary me-1"></i>Supported QR Code Formats</h6>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <strong>JSON:</strong>
+                        <code class="d-block mt-1"
+                            style="font-size:.78rem;">{"title":"The Great Gatsby","author":"F. Scott Fitzgerald","category":"Fiction","copies":3}</code>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Pipe or Comma separated:</strong>
+                        <code class="d-block mt-1"
+                            style="font-size:.78rem;">The Great Gatsby|F. Scott Fitzgerald|Fiction|3</code>
+                        <code class="d-block mt-1"
+                            style="font-size:.78rem;">The Great Gatsby,F. Scott Fitzgerald,Fiction,3</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# html5-qrcode library #}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+    const csrfToken = '{{ csrf_token() }}';
+    let scanner = null;
+
+    function showStatus(msg, type) {
+        const el = document.getElementById('scan-status');
+        el.style.display = 'block';
+        el.className = 'mb-4 alert alert-' + type + ' d-flex align-items-center';
+        const icon = type === 'success' ? 'check-circle-fill' : type === 'danger' ? 'exclamation-triangle-fill' : 'info-circle-fill';
+        el.innerHTML = '<i class="bi bi-' + icon + ' me-2"></i>' + msg;
+        if (type === 'success') setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    function addToList(book) {
+        const container = document.getElementById('scanned-books');
+        container.style.display = 'block';
+        const tbody = document.getElementById('scanned-list');
+        tbody.innerHTML = '<tr><td><strong>' + book.title + '</strong></td><td>' + book.author + '</td><td>' + book.category + '</td><td>' + book.total_copies + '</td></tr>' + tbody.innerHTML;
+    }
+
+    function processQRData(data) {
+        if (!data || !data.trim()) {
+            showStatus('Empty QR data. Please scan again.', 'warning');
+            return;
+        }
+
+        showStatus('Processing scanned data...', 'info');
+
+        fetch('/admin/scan/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({ qr_data: data }),
+        })
+            .then(r => r.json().then(d => ({ status: r.status, data: d })))
+            .then(({ status, data }) => {
+                if (data.success) {
+                    showStatus(data.message, 'success');
+                    addToList(data.book);
+                    // Play a success beep
+                    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgkKuwo2BCJTN0teleQR0ePXOdoJBcLSIzZpmhk2Q4JSxbkZ+UXy4lLV2UoJBaLSMtW5Sfk10uIyxdlaCSWi0jLVuUn5NdLyUsXZWgklouIy1bkp+TXS8lLFyVoJNcLyMsW5Kfk1wvJSxclaCTXC4jLV2Un5NbLyQsXZWgk1wuIy1dlJ+TWy8kLF2VoJRcLiMtXZSfk1svJCxdlaCUXC4jLV2Un5NbLyQsXJWgk1wvIyxdlJ+UWy8kLVyVoJNcLiMtXZSfk1svJCxdlaCTXC4jLV2Un5NbLiQsXZWgk1wvIyxdlJ+UWy8kLVyVoJNcLiMtXZSfk1svJCxdlaCTXC4jLV2Tn5NbLyQsXZWgk1wuIy1dlJ+TWy8kLF2VoJNcLSMtXZSfk1svJCxdlaCTXC4jLV2Un5NbLyQsXZWg').play(); } catch (e) { }
+                } else {
+                    showStatus(data.error, 'danger');
+                }
+            })
+            .catch(err => {
+                showStatus('Network error: ' + err.message, 'danger');
+            });
+    }
+
+    // Initialize QR scanner
+    document.addEventListener('DOMContentLoaded', function () {
+        scanner = new Html5Qrcode('qr-reader');
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        Html5Qrcode.getCameras().then(cameras => {
+            if (cameras && cameras.length) {
+                // Prefer back camera
+                let cameraId = cameras[0].id;
+                for (let c of cameras) {
+                    if (c.label && c.label.toLowerCase().includes('back')) {
+                        cameraId = c.id;
+                        break;
+                    }
+                }
+                scanner.start(cameraId, config,
+                    (decodedText) => {
+                        // Pause scanning while processing
+                        scanner.pause(true);
+                        processQRData(decodedText);
+                        // Resume after 3 seconds
+                        setTimeout(() => {
+                            try { scanner.resume(); } catch (e) { }
+                        }, 3000);
+                    },
+                    (errorMessage) => { /* ignore scan errors */ }
+                ).catch(err => {
+                    showStatus('Camera error: ' + err + '. Use manual input below.', 'warning');
+                });
+            } else {
+                showStatus('No cameras found. Use the manual input option below.', 'warning');
+            }
+        }).catch(err => {
+            showStatus('Cannot access cameras. Please allow camera permissions or use manual input.', 'warning');
+        });
+    });
+</script>
+{% endblock %}

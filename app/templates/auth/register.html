@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width:520px;">
+        <div class="auth-logo">
+            <i class="bi bi-person-plus-fill"></i>
+            <h2>Create Account</h2>
+            <p>Join the Smart Library community</p>
+        </div>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Full
+                    name", id="register-name") }}
+                    {% for error in form.name.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.roll_number.label(class="form-label") }}
+                    {{ form.roll_number(class="form-control" + (" is-invalid" if form.roll_number.errors else ""),
+                    placeholder="e.g. 2024CS001", id="register-roll") }}
+                    {% for error in form.roll_number.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter
+                your email", id="register-email") }}
+                {% for error in form.email.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.phone.label(class="form-label") }}
+                    {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""),
+                    placeholder="Phone number", id="register-phone") }}
+                    {% for error in form.phone.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.division.label(class="form-label") }}
+                    {{ form.division(class="form-control" + (" is-invalid" if form.division.errors else ""),
+                    placeholder="e.g. A, B, C", id="register-division") }}
+                    {% for error in form.division.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.department.label(class="form-label") }}
+                    {{ form.department(class="form-select" + (" is-invalid" if form.department.errors else ""),
+                    id="register-department") }}
+                    {% for error in form.department.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.semester.label(class="form-label") }}
+                    {{ form.semester(class="form-select" + (" is-invalid" if form.semester.errors else ""),
+                    id="register-semester") }}
+                    {% for error in form.semester.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                    placeholder="Create a password", id="register-password") }}
+                    {% for error in form.password.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.confirm_password.label(class="form-label") }}
+                    {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else
+                    ""), placeholder="Confirm password", id="register-confirm") }}
+                    {% for error in form.confirm_password.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="d-grid mb-3">
+                {{ form.submit(class="btn btn-primary btn-lg", id="register-submit") }}
+            </div>
+
+            <p class="text-center mb-0" style="font-size: 0.9rem; color: var(--text-secondary);">
+                Already have an account?
+                <a href="{{ url_for('auth.student_login') }}">Login here</a>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

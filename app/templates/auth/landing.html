@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block body %}
+<div class="auth-wrapper">
+    <div style="text-align:center; width:100%; max-width:560px;">
+        {# ── Logo ────────────────────────────────────────────────── #}
+        <div style="margin-bottom:2.5rem;">
+            <i class="bi bi-book-half"
+                style="font-size:3.5rem; color:var(--accent); display:block; margin-bottom:.75rem;"></i>
+            <h1 style="font-weight:800; font-size:2rem; color:#fff; margin:0;">Online Library</h1>
+            <p style="color:rgba(255,255,255,0.6); margin-top:.35rem; font-size:1rem;">Management System</p>
+        </div>
+
+        {# ── Role Selection Cards ────────────────────────────────── #}
+        <div class="row g-4 justify-content-center">
+            {# Student Card #}
+            <div class="col-sm-6">
+                <a href="{{ url_for('auth.student_login') }}" style="text-decoration:none;">
+                    <div style="background:var(--bg-card); border-radius:var(--radius); padding:2.5rem 1.5rem; box-shadow:var(--shadow-lg); transition:var(--transition); border:2px solid transparent;"
+                        onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='var(--primary)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent';">
+                        <div
+                            style="width:72px; height:72px; border-radius:50%; background:var(--primary-light); display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem;">
+                            <i class="bi bi-mortarboard-fill" style="font-size:1.75rem; color:var(--primary);"></i>
+                        </div>
+                        <h3 style="font-weight:700; font-size:1.2rem; color:var(--secondary); margin-bottom:.35rem;">
+                            Student Login</h3>
+                        <p style="color:var(--text-secondary); font-size:.875rem; margin:0;">Search books, view
+                            availability &amp; track your borrowed books</p>
+                    </div>
+                </a>
+            </div>
+
+            {# Admin Card #}
+            <div class="col-sm-6">
+                <a href="{{ url_for('auth.admin_login') }}" style="text-decoration:none;">
+                    <div style="background:var(--bg-card); border-radius:var(--radius); padding:2.5rem 1.5rem; box-shadow:var(--shadow-lg); transition:var(--transition); border:2px solid transparent;"
+                        onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='var(--accent)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent';">
+                        <div
+                            style="width:72px; height:72px; border-radius:50%; background:#ecfeff; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem;">
+                            <i class="bi bi-shield-lock-fill" style="font-size:1.75rem; color:var(--accent);"></i>
+                        </div>
+                        <h3 style="font-weight:700; font-size:1.2rem; color:var(--secondary); margin-bottom:.35rem;">
+                            Admin Login</h3>
+                        <p style="color:var(--text-secondary); font-size:.875rem; margin:0;">Manage books, members,
+                            issue &amp; return operations</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <p style="color:rgba(255,255,255,0.45); font-size:.85rem; margin-top:2rem;">
+            New student? <a href="{{ url_for('auth.register') }}" style="color:var(--accent);">Create an account</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

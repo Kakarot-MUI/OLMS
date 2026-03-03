@@ -1,0 +1,59 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Edit Due Date{% endblock %}
+{% block page_title %}Edit Due Date{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-olms">
+            <div class="card-header-olms">
+                <i class="bi bi-calendar-event text-primary"></i> Edit Due Date
+            </div>
+            <div class="card-body">
+                {# Issue Info #}
+                <div class="alert alert-light border mb-4" style="font-size:.9rem;">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <strong>Issue Code:</strong>
+                            <code style="color:var(--primary); font-weight:600;">{{ issued.issue_code }}</code><br>
+                            <strong>Student:</strong> {{ issued.user.name }}<br>
+                            <strong>Roll No:</strong> {{ issued.user.roll_number or '—' }}
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Book:</strong> {{ issued.book.title }}<br>
+                            <strong>Issued On:</strong> {{ issued.issue_date.strftime('%b %d, %Y') }}<br>
+                            <strong>Current Due Date:</strong>
+                            <span class="{{ 'text-danger fw-bold' if issued.status == 'overdue' }}">
+                                {{ issued.due_date.strftime('%b %d, %Y') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <label for="due_date" class="form-label fw-semibold">New Due Date</label>
+                        <input type="date"
+                            class="form-control form-control-lg{{ ' is-invalid' if form.due_date.errors }}"
+                            id="due_date" name="due_date" value="{{ issued.due_date.strftime('%Y-%m-%d') }}"
+                            min="{{ issued.issue_date.strftime('%Y-%m-%d') }}">
+                        {% for error in form.due_date.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Update Due Date
+                        </button>
+                        <a href="{{ url_for('admin.issued_books') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

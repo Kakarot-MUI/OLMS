@@ -1,0 +1,90 @@
+{% extends "user/layout.html" %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-700 mb-1">Welcome, {{ current_user.name }}!</h1>
+        <p class="text-muted mb-0">Here's an overview of your library activity.</p>
+    </div>
+    <a href="{{ url_for('user.search') }}" class="btn btn-primary">
+        <i class="bi bi-search me-2"></i>Browse Books
+    </a>
+</div>
+
+{# ── Currently Borrowed ─────────────────────────────────────── #}
+<div class="card-olms mb-4">
+    <div class="card-header-olms">
+        <i class="bi bi-book text-primary"></i> Currently Borrowed ({{ active_books|length }})
+    </div>
+    <div class="card-body p-0">
+        {% if active_books %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.875rem 1rem;">Book Title</th>
+                        <th style="padding:.875rem 1rem;">Author</th>
+                        <th style="padding:.875rem 1rem;">Issued On</th>
+                        <th style="padding:.875rem 1rem;">Due Date</th>
+                        <th style="padding:.875rem 1rem;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in active_books %}
+                    <tr>
+                        <td style="padding:.875rem 1rem;"><strong>{{ issue.book.title }}</strong></td>
+                        <td style="padding:.875rem 1rem;">{{ issue.book.author }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                        <td style="padding:.875rem 1rem;">
+                            <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+            <i class="bi bi-book d-block" style="font-size:2rem;"></i>
+            <h5>No active books</h5>
+            <p>You have no books currently checked out. <a href="{{ url_for('user.search') }}">Browse the catalog</a> to
+                find your next read.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Recently Returned ──────────────────────────────────────── #}
+{% if returned_books %}
+<div class="card-olms">
+    <div class="card-header-olms">
+        <i class="bi bi-clock-history text-success"></i> Recently Returned
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="padding:.875rem 1rem;">Book Title</th>
+                        <th style="padding:.875rem 1rem;">Author</th>
+                        <th style="padding:.875rem 1rem;">Returned On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in returned_books[:5] %}
+                    <tr>
+                        <td style="padding:.875rem 1rem;">{{ issue.book.title }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.book.author }}</td>
+                        <td style="padding:.875rem 1rem;">{{ issue.return_date.strftime('%b %d, %Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Manage Members{% endblock %}
+{% block page_title %}Manage Members{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <p class="text-muted mb-0">{{ pagination.total }} registered members</p>
+</div>
+
+{% if pagination.items %}
+<div class="table-olms">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in pagination.items %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td><strong>{{ user.name }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.status == 'active' %}
+                        <span class="badge-status badge-active">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-blocked">Blocked</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}"
+                            data-confirm="Are you sure you want to {{ 'block' if user.status == 'active' else 'unblock' }} this user?">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% if user.status == 'active' %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Block User">
+                                <i class="bi bi-person-x me-1"></i>Block
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Unblock User">
+                                <i class="bi bi-person-check me-1"></i>Unblock
+                            </button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.users', page=pagination.prev_num) }}"><i
+                    class="bi bi-chevron-left"></i></a>
+        </li>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {{ 'active' if p == pagination.page }}">
+            <a class="page-link" href="{{ url_for('admin.users', page=p) }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.users', page=pagination.next_num) }}"><i
+                    class="bi bi-chevron-right"></i></a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card-olms">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-people d-block"></i>
+            <h5>No members registered yet</h5>
+            <p>Members will appear here once they register.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

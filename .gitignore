@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+
+# Byte-compiled / optimized
+*.pyc
+*.pyo
+
+# pytest
+.pytest_cache/
+
+# Migrations (uncomment if you don't want to track migrations)
+# migrations/
+
+# Agent/AI
+.agent/
+.gemini/
