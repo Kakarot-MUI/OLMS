@@ -32,6 +32,25 @@
                     <a class="nav-link" href="{{ url_for('user.profile') }}"><i
                             class="bi bi-person-circle me-1"></i>Profile</a>
                 </li>
+                <!-- Theme Toggle -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-moon-stars me-1"></i>Theme
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="themeDropdown"
+                        style="font-size: 0.9rem;">
+                        <li><button class="dropdown-item theme-btn" data-theme-value="light"><i
+                                    class="bi bi-sun me-2"></i>Light</button></li>
+                        <li><button class="dropdown-item theme-btn" data-theme-value="dark"><i
+                                    class="bi bi-moon me-2"></i>Dark</button></li>
+                        <li><button class="dropdown-item theme-btn" data-theme-value="tokyo-night"><i
+                                    class="bi bi-stars me-2"></i>Tokyo Night</button></li>
+                        <li><button class="dropdown-item theme-btn" data-theme-value="tokyo-night-storm"><i
+                                    class="bi bi-cloud-lightning-rain me-2"></i>Tokyo Storm</button></li>
+                    </ul>
+                </li>
+                <!-- /Theme Toggle -->
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('auth.logout') }}"><i
                             class="bi bi-box-arrow-left me-1"></i>Logout</a>
