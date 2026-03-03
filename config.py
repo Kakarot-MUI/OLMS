@@ -36,12 +36,21 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
 
-    # Support Railway's DATABASE_URL or fall back to MySQL config or SQLite
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        Config.SQLALCHEMY_DATABASE_URI
-        if os.environ.get('DB_HOST')
-        else f"sqlite:///{os.path.join(basedir, 'olms.db')}"
+    # Support Render/Railway DATABASE_URL or fall back to MySQL config or SQLite
+    _db_url = os.environ.get('DATABASE_URL', '')
+
+    # Render uses postgres:// but SQLAlchemy requires postgresql://
+    if _db_url.startswith('postgres://'):
+        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+
+    SQLALCHEMY_DATABASE_URI = (
+        _db_url
+        if _db_url
+        else (
+            Config.SQLALCHEMY_DATABASE_URI
+            if os.environ.get('DB_HOST')
+            else f"sqlite:///{os.path.join(basedir, 'olms.db')}"
+        )
     )
 
 
