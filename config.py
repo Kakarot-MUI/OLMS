@@ -36,6 +36,14 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
 
+    # Support Railway's DATABASE_URL or fall back to MySQL config or SQLite
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL',
+        Config.SQLALCHEMY_DATABASE_URI
+        if os.environ.get('DB_HOST')
+        else f"sqlite:///{os.path.join(basedir, 'olms.db')}"
+    )
+
 
 class TestingConfig(Config):
     """Testing configuration."""
