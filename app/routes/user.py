@@ -3,8 +3,9 @@ from flask_login import login_required, current_user
 from app.decorators import active_required
 from app.services import book_service, issue_service
 from app.models import IssuedBook, User, Message
+from app.forms import StudentProfileForm
 from flask import current_app
-from app import db
+from app import db, bcrypt
 from sqlalchemy import or_, and_
 
 user_bp = Blueprint('user', __name__)
@@ -25,10 +26,20 @@ def dashboard():
     my_books = issue_service.get_user_issued_books(current_user.id)
     active_books = [b for b in my_books if b.status in ('issued', 'overdue')]
     returned_books = [b for b in my_books if b.status == 'returned']
+
+    # Build due date info for active books
+    due_date_info = {}
+    for book in active_books:
+        due_date_info[book.id] = {
+            'status': issue_service.get_due_date_status(book.due_date),
+            'days': issue_service.get_days_remaining(book.due_date),
+        }
+
     return render_template(
         'user/dashboard.html',
         active_books=active_books,
         returned_books=returned_books,
+        due_date_info=due_date_info,
     )
 
 
@@ -84,7 +95,51 @@ def my_books():
     """View user's issued books history."""
     issue_service.update_overdue_books()
     my_books = issue_service.get_user_issued_books(current_user.id)
-    return render_template('user/my_books.html', issued_books=my_books)
+
+    # Add due date info for active books
+    due_date_info = {}
+    for book in my_books:
+        if book.status in ('issued', 'overdue'):
+            due_date_info[book.id] = {
+                'status': issue_service.get_due_date_status(book.due_date),
+                'days': issue_service.get_days_remaining(book.due_date),
+            }
+
+    return render_template('user/my_books.html', issued_books=my_books, due_date_info=due_date_info)
+
+
+# ── Profile ──────────────────────────────────────────────────────────────
+
+@user_bp.route('/profile', methods=['GET', 'POST'])
+@active_required
+def profile():
+    """Student profile page — view and edit."""
+    form = StudentProfileForm(obj=current_user)
+    stats = issue_service.get_user_borrowing_stats(current_user.id)
+
+    if form.validate_on_submit():
+        current_user.name = form.name.data.strip()
+        current_user.phone = form.phone.data.strip() if form.phone.data else None
+        current_user.division = form.division.data.strip() if form.division.data else None
+        current_user.department = form.department.data if form.department.data else None
+        current_user.semester = form.semester.data if form.semester.data else None
+
+        # Handle optional password change
+        if form.new_password.data:
+            if not form.current_password.data:
+                flash('Please enter your current password to change it.', 'warning')
+                return render_template('user/profile.html', form=form, stats=stats)
+            if not current_user.check_password(form.current_password.data):
+                flash('Current password is incorrect.', 'danger')
+                return render_template('user/profile.html', form=form, stats=stats)
+            current_user.set_password(form.new_password.data)
+            flash('Password updated successfully!', 'success')
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('user.profile'))
+
+    return render_template('user/profile.html', form=form, stats=stats)
 
 
 # ── Chat ─────────────────────────────────────────────────────────────────

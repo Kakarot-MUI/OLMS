@@ -139,3 +139,64 @@ class SearchForm(FlaskForm):
     ])
     category = SelectField('Category', choices=[('', 'All Categories')], validate_choice=False)
     submit = SubmitField('Search')
+
+
+class StudentProfileForm(FlaskForm):
+    """Student profile edit form."""
+    name = StringField('Full Name', validators=[
+        DataRequired(message='Name is required.'),
+        Length(min=2, max=120)
+    ])
+    phone = StringField('Phone Number', validators=[
+        Optional(),
+        Length(min=10, max=20, message='Enter a valid phone number.')
+    ])
+    division = StringField('Division', validators=[
+        Optional(), Length(max=20)
+    ])
+    department = SelectField('Department', validators=[Optional()], choices=[
+        ('', '-- Select Department --'),
+        ('Computer Science', 'Computer Science'),
+        ('Information Technology', 'Information Technology'),
+        ('Electronics', 'Electronics'),
+        ('Mechanical', 'Mechanical'),
+        ('Civil', 'Civil'),
+        ('Electrical', 'Electrical'),
+        ('Chemical', 'Chemical'),
+        ('Other', 'Other'),
+    ])
+    semester = SelectField('Semester', coerce=int, validators=[Optional()], choices=[
+        (0, '-- Select Semester --'),
+        (1, 'Semester 1'), (2, 'Semester 2'),
+        (3, 'Semester 3'), (4, 'Semester 4'),
+        (5, 'Semester 5'), (6, 'Semester 6'),
+        (7, 'Semester 7'), (8, 'Semester 8'),
+    ])
+    current_password = PasswordField('Current Password', validators=[Optional()])
+    new_password = PasswordField('New Password', validators=[
+        Optional(),
+        Length(min=6, max=128, message='Password must be at least 6 characters.')
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        Optional(),
+        EqualTo('new_password', message='Passwords must match.')
+    ])
+    submit = SubmitField('Save Changes')
+
+
+class AdminProfileForm(FlaskForm):
+    """Admin profile edit form."""
+    name = StringField('Full Name', validators=[
+        DataRequired(message='Name is required.'),
+        Length(min=2, max=120)
+    ])
+    current_password = PasswordField('Current Password', validators=[Optional()])
+    new_password = PasswordField('New Password', validators=[
+        Optional(),
+        Length(min=6, max=128, message='Password must be at least 6 characters.')
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        Optional(),
+        EqualTo('new_password', message='Passwords must match.')
+    ])
+    submit = SubmitField('Save Changes')

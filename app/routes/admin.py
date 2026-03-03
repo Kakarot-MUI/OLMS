@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app.decorators import admin_required
-from app.forms import BookForm, IssueBookForm, ReturnBookForm, EditDueDateForm
+from app.forms import BookForm, IssueBookForm, ReturnBookForm, EditDueDateForm, AdminProfileForm
 from datetime import datetime
 from app.models import User, Book, IssuedBook, Message
 from app.services import book_service, issue_service
-from app import db
+from app import db, bcrypt
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -333,6 +333,36 @@ def lookup_code():
                 error = f'No record found for code "{code}".'
 
     return render_template('admin/lookup.html', result=result, code=code, error=error)
+
+
+# ── Profile ──────────────────────────────────────────────────────────────
+
+@admin_bp.route('/profile', methods=['GET', 'POST'])
+@admin_required
+def admin_profile():
+    """Admin profile page — view and edit."""
+    form = AdminProfileForm(obj=current_user)
+    stats = issue_service.get_dashboard_stats()
+
+    if form.validate_on_submit():
+        current_user.name = form.name.data.strip()
+
+        # Handle optional password change
+        if form.new_password.data:
+            if not form.current_password.data:
+                flash('Please enter your current password to change it.', 'warning')
+                return render_template('admin/profile.html', form=form, stats=stats)
+            if not current_user.check_password(form.current_password.data):
+                flash('Current password is incorrect.', 'danger')
+                return render_template('admin/profile.html', form=form, stats=stats)
+            current_user.set_password(form.new_password.data)
+            flash('Password updated successfully!', 'success')
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('admin.admin_profile'))
+
+    return render_template('admin/profile.html', form=form, stats=stats)
 
 
 # ── Chat ─────────────────────────────────────────────────────────────────

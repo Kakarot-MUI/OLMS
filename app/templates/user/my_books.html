@@ -15,17 +15,28 @@
                     <th>Author</th>
                     <th>Issued On</th>
                     <th>Due Date</th>
+                    <th>Days Left</th>
                     <th>Returned</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for issue in issued_books %}
+                {% set info = due_date_info.get(issue.id, {}) %}
                 <tr>
                     <td><strong>{{ issue.book.title }}</strong></td>
                     <td>{{ issue.book.author }}</td>
                     <td>{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
                     <td>{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        {% if info %}
+                        <span class="badge-due badge-due-{{ info.get('status', 'safe') }}">
+                            {% if info.get('days', 0) < 0 %} {{ info.days * -1 }}d overdue {% elif info.get('days',
+                                0)==0 %} Due today {% else %} {{ info.days }}d left {% endif %} </span>
+                                {% else %}
+                                —
+                                {% endif %}
+                    </td>
                     <td>{{ issue.return_date.strftime('%b %d, %Y') if issue.return_date else '—' }}</td>
                     <td>
                         <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>

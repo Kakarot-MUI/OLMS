@@ -13,6 +13,50 @@
     </a>
 </div>
 
+{# ── Due Date Reminders ──────────────────────────────────────── #}
+{% set overdue_books = active_books|selectattr('status', 'equalto', 'overdue')|list %}
+{% set urgent_books = [] %}
+{% set upcoming_books = [] %}
+{% for book in active_books %}
+{% if due_date_info.get(book.id, {}).get('status') == 'urgent' and book.status != 'overdue' %}
+{% if urgent_books.append(book) %}{% endif %}
+{% elif due_date_info.get(book.id, {}).get('status') == 'upcoming' and book.status != 'overdue' %}
+{% if upcoming_books.append(book) %}{% endif %}
+{% endif %}
+{% endfor %}
+
+{% if overdue_books %}
+<div class="due-reminder due-overdue mb-3">
+    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+    <strong>Overdue!</strong> You have {{ overdue_books|length }} book{{ 's' if overdue_books|length > 1 }} past due
+    date.
+    {% for book in overdue_books %}
+    <span class="due-book-tag">{{ book.book.title }} ({{ (due_date_info[book.id].days * -1) }} days overdue)</span>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if urgent_books %}
+<div class="due-reminder due-urgent mb-3">
+    <i class="bi bi-clock-fill me-2"></i>
+    <strong>Due Soon!</strong>
+    {% for book in urgent_books %}
+    <span class="due-book-tag">{{ book.book.title }} ({{ due_date_info[book.id].days }} day{{ 's' if
+        due_date_info[book.id].days != 1 }} left)</span>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if upcoming_books %}
+<div class="due-reminder due-upcoming mb-3">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <strong>Upcoming:</strong>
+    {% for book in upcoming_books %}
+    <span class="due-book-tag">{{ book.book.title }} ({{ due_date_info[book.id].days }} days left)</span>
+    {% endfor %}
+</div>
+{% endif %}
+
 {# ── Currently Borrowed ─────────────────────────────────────── #}
 <div class="card-olms mb-4">
     <div class="card-header-olms">
@@ -28,16 +72,24 @@
                         <th style="padding:.875rem 1rem;">Author</th>
                         <th style="padding:.875rem 1rem;">Issued On</th>
                         <th style="padding:.875rem 1rem;">Due Date</th>
+                        <th style="padding:.875rem 1rem;">Days Left</th>
                         <th style="padding:.875rem 1rem;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for issue in active_books %}
+                    {% set info = due_date_info.get(issue.id, {}) %}
                     <tr>
                         <td style="padding:.875rem 1rem;"><strong>{{ issue.book.title }}</strong></td>
                         <td style="padding:.875rem 1rem;">{{ issue.book.author }}</td>
                         <td style="padding:.875rem 1rem;">{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
                         <td style="padding:.875rem 1rem;">{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                        <td style="padding:.875rem 1rem;">
+                            <span class="badge-due badge-due-{{ info.get('status', 'safe') }}">
+                                {% if info.get('days', 0) < 0 %} {{ info.days * -1 }} day{{ 's' if info.days * -1 !=1 }}
+                                    overdue {% elif info.get('days', 0)==0 %} Due today {% else %} {{ info.days }}
+                                    day{{ 's' if info.days !=1 }} left {% endif %} </span>
+                        </td>
                         <td style="padding:.875rem 1rem;">
                             <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
                         </td>

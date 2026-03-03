@@ -21,9 +21,9 @@
     --text-secondary: #64748b;
     --text-light: #94a3b8;
     --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --radius: 0.75rem;
     --radius-sm: 0.5rem;
     --transition: all 0.2s ease;
@@ -32,7 +32,9 @@
 }
 
 /* ── Global Reset & Base ──────────────────────────────────────── */
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 body {
     font-family: var(--font-family);
@@ -42,8 +44,15 @@ body {
     min-height: 100vh;
 }
 
-a { color: var(--primary); text-decoration: none; transition: var(--transition); }
-a:hover { color: var(--primary-hover); }
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
 
 /* ── Navbar (User) ────────────────────────────────────────────── */
 .navbar-olms {
@@ -60,10 +69,13 @@ a:hover { color: var(--primary-hover); }
     letter-spacing: -0.5px;
 }
 
-.navbar-olms .navbar-brand i { color: var(--accent); margin-right: 0.5rem; }
+.navbar-olms .navbar-brand i {
+    color: var(--accent);
+    margin-right: 0.5rem;
+}
 
 .navbar-olms .nav-link {
-    color: rgba(255,255,255,0.8) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
     font-weight: 500;
     padding: 0.5rem 1rem !important;
     border-radius: var(--radius-sm);
@@ -73,7 +85,7 @@ a:hover { color: var(--primary-hover); }
 .navbar-olms .nav-link:hover,
 .navbar-olms .nav-link.active {
     color: #fff !important;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* ── Admin Sidebar ────────────────────────────────────────────── */
@@ -97,7 +109,7 @@ a:hover { color: var(--primary-hover); }
 
 .sidebar-brand {
     padding: 1.5rem 1.25rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -144,7 +156,7 @@ a:hover { color: var(--primary-hover); }
 
 .sidebar-nav .nav-item a:hover {
     color: #f1f5f9;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border-left-color: var(--accent);
 }
 
@@ -154,7 +166,11 @@ a:hover { color: var(--primary-hover); }
     border-left-color: var(--primary);
 }
 
-.sidebar-nav .nav-item a i { width: 20px; text-align: center; font-size: 0.95rem; }
+.sidebar-nav .nav-item a i {
+    width: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+}
 
 .admin-content {
     margin-left: var(--sidebar-width);
@@ -181,7 +197,10 @@ a:hover { color: var(--primary-hover); }
     margin: 0;
 }
 
-.admin-main { padding: 2rem; flex: 1; }
+.admin-main {
+    padding: 2rem;
+    flex: 1;
+}
 
 /* ── Stat Cards ───────────────────────────────────────────────── */
 .stat-card {
@@ -209,10 +228,21 @@ a:hover { color: var(--primary-hover); }
     height: 4px;
 }
 
-.stat-card.books::before { background: var(--primary); }
-.stat-card.users::before { background: var(--success); }
-.stat-card.issued::before { background: var(--warning); }
-.stat-card.overdue::before { background: var(--danger); }
+.stat-card.books::before {
+    background: var(--primary);
+}
+
+.stat-card.users::before {
+    background: var(--success);
+}
+
+.stat-card.issued::before {
+    background: var(--warning);
+}
+
+.stat-card.overdue::before {
+    background: var(--danger);
+}
 
 .stat-card .stat-icon {
     width: 48px;
@@ -225,10 +255,25 @@ a:hover { color: var(--primary-hover); }
     margin-bottom: 1rem;
 }
 
-.stat-card.books .stat-icon { background: var(--primary-light); color: var(--primary); }
-.stat-card.users .stat-icon { background: #ecfdf5; color: var(--success); }
-.stat-card.issued .stat-icon { background: #fefce8; color: var(--warning); }
-.stat-card.overdue .stat-icon { background: #fef2f2; color: var(--danger); }
+.stat-card.books .stat-icon {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.stat-card.users .stat-icon {
+    background: #ecfdf5;
+    color: var(--success);
+}
+
+.stat-card.issued .stat-icon {
+    background: #fefce8;
+    color: var(--warning);
+}
+
+.stat-card.overdue .stat-icon {
+    background: #fef2f2;
+    color: var(--danger);
+}
 
 .stat-card .stat-value {
     font-size: 2rem;
@@ -270,7 +315,9 @@ a:hover { color: var(--primary-hover); }
     gap: 0.5rem;
 }
 
-.card-olms .card-body { padding: 1.5rem; }
+.card-olms .card-body {
+    padding: 1.5rem;
+}
 
 /* ── Book Card ────────────────────────────────────────────────── */
 .book-card {
@@ -299,11 +346,30 @@ a:hover { color: var(--primary-hover); }
     position: relative;
 }
 
-.book-card .book-cover.fiction { background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%); color: var(--primary); }
-.book-card .book-cover.science { background: linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%); color: var(--success); }
-.book-card .book-cover.history { background: linear-gradient(135deg, #fefce8 0%, #fde68a 100%); color: var(--warning); }
-.book-card .book-cover.technology { background: linear-gradient(135deg, #ecfeff 0%, #a5f3fc 100%); color: var(--accent); }
-.book-card .book-cover.default { background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); color: var(--text-secondary); }
+.book-card .book-cover.fiction {
+    background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%);
+    color: var(--primary);
+}
+
+.book-card .book-cover.science {
+    background: linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%);
+    color: var(--success);
+}
+
+.book-card .book-cover.history {
+    background: linear-gradient(135deg, #fefce8 0%, #fde68a 100%);
+    color: var(--warning);
+}
+
+.book-card .book-cover.technology {
+    background: linear-gradient(135deg, #ecfeff 0%, #a5f3fc 100%);
+    color: var(--accent);
+}
+
+.book-card .book-cover.default {
+    background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+    color: var(--text-secondary);
+}
 
 .book-card .book-body {
     padding: 1.25rem;
@@ -352,8 +418,13 @@ a:hover { color: var(--primary-hover); }
     font-weight: 600;
 }
 
-.book-card .availability.available { color: var(--success); }
-.book-card .availability.unavailable { color: var(--danger); }
+.book-card .availability.available {
+    color: var(--success);
+}
+
+.book-card .availability.unavailable {
+    color: var(--danger);
+}
 
 /* ── Tables ───────────────────────────────────────────────────── */
 .table-olms {
@@ -364,7 +435,9 @@ a:hover { color: var(--primary-hover); }
     border: 1px solid var(--border-color);
 }
 
-.table-olms table { margin: 0; }
+.table-olms table {
+    margin: 0;
+}
 
 .table-olms thead th {
     background: #f8fafc;
@@ -385,7 +458,9 @@ a:hover { color: var(--primary-hover); }
     font-size: 0.9rem;
 }
 
-.table-olms tbody tr:hover { background: #f8fafc; }
+.table-olms tbody tr:hover {
+    background: #f8fafc;
+}
 
 /* ── Badges ───────────────────────────────────────────────────── */
 .badge-status {
@@ -396,11 +471,30 @@ a:hover { color: var(--primary-hover); }
     letter-spacing: 0.3px;
 }
 
-.badge-issued { background: #dbeafe; color: #1d4ed8; }
-.badge-returned { background: #dcfce7; color: #15803d; }
-.badge-overdue { background: #fee2e2; color: #dc2626; }
-.badge-active { background: #dcfce7; color: #15803d; }
-.badge-blocked { background: #fee2e2; color: #dc2626; }
+.badge-issued {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge-returned {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-overdue {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.badge-active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-blocked {
+    background: #fee2e2;
+    color: #dc2626;
+}
 
 /* ── Buttons ──────────────────────────────────────────────────── */
 .btn-primary {
@@ -446,7 +540,8 @@ a:hover { color: var(--primary-hover); }
 }
 
 /* ── Forms ────────────────────────────────────────────────────── */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-radius: var(--radius-sm);
     border: 1.5px solid var(--border-color);
     padding: 0.6rem 0.875rem;
@@ -454,7 +549,8 @@ a:hover { color: var(--primary-hover); }
     transition: var(--transition);
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
@@ -529,8 +625,15 @@ a:hover { color: var(--primary-hover); }
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(100px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* ── Pagination ───────────────────────────────────────────────── */
@@ -637,13 +740,23 @@ a:hover { color: var(--primary-hover); }
         margin-left: 0;
     }
 
-    .admin-topbar .sidebar-toggle { display: block !important; }
+    .admin-topbar .sidebar-toggle {
+        display: block !important;
+    }
 }
 
 @media (max-width: 575.98px) {
-    .auth-card { padding: 1.5rem; }
-    .admin-main { padding: 1rem; }
-    .stat-card .stat-value { font-size: 1.5rem; }
+    .auth-card {
+        padding: 1.5rem;
+    }
+
+    .admin-main {
+        padding: 1rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
 }
 
 /* ── Utility ──────────────────────────────────────────────────── */
@@ -654,10 +767,173 @@ a:hover { color: var(--primary-hover); }
     overflow: hidden;
 }
 
-.fw-700 { font-weight: 700; }
+.fw-700 {
+    font-weight: 700;
+}
 
 .content-wrapper {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+}
+
+/* ── Profile Page ────────────────────────────────────────────── */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-avatar.admin {
+    background: linear-gradient(135deg, var(--secondary), #475569);
+}
+
+.profile-header-info h1,
+.profile-header-info h2 {
+    margin: 0;
+}
+
+.profile-info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.profile-info-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.profile-info-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.profile-info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+}
+
+.profile-info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ── Due Date Reminders ──────────────────────────────────────── */
+.due-reminder {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    animation: slideIn 0.3s ease;
+}
+
+.due-reminder.due-overdue {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.due-reminder.due-urgent {
+    background: #fffbeb;
+    border: 1px solid #fed7aa;
+    color: #92400e;
+}
+
+.due-reminder.due-upcoming {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+}
+
+.due-book-tag {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.badge-due {
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-due-safe {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-due-upcoming {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge-due-urgent {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-due-overdue {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+@media (max-width: 575.98px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        font-size: 1.5rem;
+    }
 }

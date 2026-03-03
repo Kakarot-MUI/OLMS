@@ -118,3 +118,39 @@ def get_dashboard_stats():
         'overdue_count': overdue_count,
         'recent_books': recent_books,
     }
+
+
+def get_due_date_status(due_date):
+    """Return urgency level for a due date."""
+    now = datetime.utcnow()
+    delta = (due_date - now).days
+    if delta < 0:
+        return 'overdue'
+    elif delta <= 2:
+        return 'urgent'
+    elif delta <= 5:
+        return 'upcoming'
+    return 'safe'
+
+
+def get_days_remaining(due_date):
+    """Return days until due date (negative if overdue)."""
+    now = datetime.utcnow()
+    return (due_date - now).days
+
+
+def get_user_borrowing_stats(user_id):
+    """Get borrowing statistics for a user's profile."""
+    total = IssuedBook.query.filter_by(user_id=user_id).count()
+    active = IssuedBook.query.filter(
+        IssuedBook.user_id == user_id,
+        IssuedBook.status.in_(['issued', 'overdue'])
+    ).count()
+    overdue = IssuedBook.query.filter_by(user_id=user_id, status='overdue').count()
+    returned = IssuedBook.query.filter_by(user_id=user_id, status='returned').count()
+    return {
+        'total_borrowed': total,
+        'currently_active': active,
+        'overdue': overdue,
+        'returned': returned,
+    }
