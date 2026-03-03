@@ -43,8 +43,9 @@ def create_app(config_name='development'):
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(errors_bp)
 
-    # Create default admin user
+    # Create database tables if they don't exist (needed for Render/production)
     with app.app_context():
+        db.create_all()
         _create_default_admin()
 
     return app
