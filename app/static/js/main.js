@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Theme Switcher ─────────────────────────────────────────────
     const savedTheme = localStorage.getItem('olms-theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.setAttribute('data-bs-theme', savedTheme);
 
     const themeBtns = document.querySelectorAll('.theme-btn');
     themeBtns.forEach(function (btn) {
@@ -89,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             var themeToSet = btn.getAttribute('data-theme-value');
             document.documentElement.setAttribute('data-theme', themeToSet);
+            document.documentElement.setAttribute('data-bs-theme', themeToSet);
             localStorage.setItem('olms-theme', themeToSet);
         });
     });
