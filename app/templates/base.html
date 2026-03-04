@@ -15,6 +15,13 @@
 </head>
 
 <body>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function () {
+            var theme = localStorage.getItem('olms-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     {# ── Flash Messages ─────────────────────────────────────────── #}
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}

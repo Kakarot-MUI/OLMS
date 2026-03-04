@@ -31,6 +31,83 @@
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* ── Dark Theme ────────────────────────────────────────────────── */
+[data-theme="dark"] {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #0f172a;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-light: #cbd5e1;
+    --border-color: #334155;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-light: #1e293b;
+    --secondary: #0f172a;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Dark Theme Overrides ──────────────────────────────────────── */
+[data-theme="dark"] body {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: #1e293b;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .table-olms thead th {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .table-olms tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .card-olms .card-header-olms {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .stat-card .stat-value {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .book-card .book-title {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: #334155;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .auth-card .auth-logo h2,
+[data-theme="dark"] .admin-topbar .page-title {
+    color: #f8fafc;
+}
+
 /* ── Global Reset & Base ──────────────────────────────────────── */
 * {
     box-sizing: border-box;
@@ -385,6 +462,7 @@ a:hover {
     color: var(--secondary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -763,6 +841,7 @@ a:hover {
 .text-truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

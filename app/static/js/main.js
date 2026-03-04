@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════════════════════════════
-   OLMS — Main JavaScript
+/* ── Theme Switcher ─────────────────────────────────────────────
+   Handles dark/light theme toggle with localStorage persistence.
    ═══════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -77,5 +77,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (link.getAttribute('href') === currentPath) {
             link.classList.add('active');
         }
+    });
+
+    // ── Theme Switcher ─────────────────────────────────────────────
+    const savedTheme = localStorage.getItem('olms-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    const themeBtns = document.querySelectorAll('.theme-btn');
+    themeBtns.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var themeToSet = btn.getAttribute('data-theme-value');
+            document.documentElement.setAttribute('data-theme', themeToSet);
+            localStorage.setItem('olms-theme', themeToSet);
+        });
     });
 });
