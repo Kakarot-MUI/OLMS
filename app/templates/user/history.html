@@ -7,19 +7,13 @@
 
 <!-- Stats Summary -->
 <div class="row g-3 mb-4">
-    <div class="col-sm-4">
-        <div class="stat-card books">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">Total Transactions</div>
-        </div>
-    </div>
-    <div class="col-sm-4">
+    <div class="col-sm-6">
         <div class="stat-card issued">
-            <div class="stat-value">{{ stats.active }}</div>
+            <div class="stat-value">{{ stats.currently_active }}</div>
             <div class="stat-label">Currently Borrowed</div>
         </div>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-6">
         <div class="stat-card users">
             <div class="stat-value">{{ stats.returned }}</div>
             <div class="stat-label">Returned</div>
