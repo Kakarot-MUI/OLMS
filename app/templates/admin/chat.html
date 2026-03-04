@@ -32,7 +32,8 @@
     }
 
     .chat-bubble.received {
-        background: #fff;
+        background: var(--bg-card);
+        color: var(--text-primary);
         border: 1px solid var(--border-color);
         border-bottom-left-radius: 4px;
     }
@@ -55,7 +56,7 @@
 
 {# Student info bar #}
 <div class="d-flex align-items-center gap-3 mb-3 p-3"
-    style="background:#fff; border-radius:var(--radius); border:1px solid var(--border-color);">
+    style="background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border-color);">
     <i class="bi bi-person-circle" style="font-size:2rem; color:var(--primary);"></i>
     <div>
         <strong>{{ student.name }}</strong><br>
