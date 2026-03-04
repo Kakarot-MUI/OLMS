@@ -108,6 +108,18 @@ def my_books():
     return render_template('user/my_books.html', issued_books=my_books, due_date_info=due_date_info)
 
 
+# ── History ─────────────────────────────────────────────────────────────
+
+@user_bp.route('/history')
+@active_required
+def history():
+    """Student borrowing history — all issued and returned books."""
+    issue_service.update_overdue_books()
+    all_books = issue_service.get_user_issued_books(current_user.id)
+    stats = issue_service.get_user_borrowing_stats(current_user.id)
+    return render_template('user/history.html', history=all_books, stats=stats)
+
+
 # ── Profile ──────────────────────────────────────────────────────────────
 
 @user_bp.route('/profile', methods=['GET', 'POST'])

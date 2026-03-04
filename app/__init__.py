@@ -45,8 +45,11 @@ def create_app(config_name='development'):
 
     # Create database tables if they don't exist (needed for Render/production)
     with app.app_context():
-        db.create_all()
-        _create_default_admin()
+        try:
+            db.create_all()
+            _create_default_admin()
+        except Exception as e:
+            app.logger.error(f'Database initialization error: {e}')
 
     return app
 

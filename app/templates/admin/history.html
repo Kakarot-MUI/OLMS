@@ -1,0 +1,82 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Transaction History{% endblock %}
+
+{% block content %}
+<h1 class="h4 fw-700 mb-4"><i class="bi bi-clock-history me-2"></i>All Transaction History</h1>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-3">
+        <div class="stat-card books">
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Total Transactions</div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="stat-card issued">
+            <div class="stat-value">{{ active }}</div>
+            <div class="stat-label">Currently Issued</div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="stat-card users">
+            <div class="stat-value">{{ returned }}</div>
+            <div class="stat-label">Returned</div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="stat-card overdue">
+            <div class="stat-value">{{ overdue }}</div>
+            <div class="stat-label">Overdue</div>
+        </div>
+    </div>
+</div>
+
+{% if history %}
+<div class="table-olms">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Roll No</th>
+                    <th>Book Title</th>
+                    <th>Issued On</th>
+                    <th>Due Date</th>
+                    <th>Returned On</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for issue in history %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ issue.user.name }}</td>
+                    <td>{{ issue.user.roll_number or '—' }}</td>
+                    <td><strong>{{ issue.book.title }}</strong></td>
+                    <td>{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
+                    <td>{{ issue.due_date.strftime('%b %d, %Y') }}</td>
+                    <td>{{ issue.return_date.strftime('%b %d, %Y') if issue.return_date else '—' }}</td>
+                    <td>
+                        <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card-olms">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-clock-history d-block"></i>
+            <h5>No transactions yet</h5>
+            <p>Transaction history will appear here once books are issued.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

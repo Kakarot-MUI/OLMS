@@ -335,6 +335,22 @@ def lookup_code():
     return render_template('admin/lookup.html', result=result, code=code, error=error)
 
 
+# ── History ──────────────────────────────────────────────────────────────
+
+@admin_bp.route('/history')
+@admin_required
+def history():
+    """Admin history — all issue/return transactions."""
+    issue_service.update_overdue_books()
+    all_issues = IssuedBook.query.order_by(IssuedBook.issue_date.desc()).all()
+    total = len(all_issues)
+    active = sum(1 for i in all_issues if i.status in ('issued', 'overdue'))
+    returned = sum(1 for i in all_issues if i.status == 'returned')
+    overdue = sum(1 for i in all_issues if i.status == 'overdue')
+    return render_template('admin/history.html', history=all_issues,
+                           total=total, active=active, returned=returned, overdue=overdue)
+
+
 # ── Profile ──────────────────────────────────────────────────────────────
 
 @admin_bp.route('/profile', methods=['GET', 'POST'])
