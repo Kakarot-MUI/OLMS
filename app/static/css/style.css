@@ -179,6 +179,23 @@ a:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* Override nav-link colors when inside the mobile offcanvas menu */
+.navbar-olms .offcanvas .nav-link {
+    color: var(--text-primary) !important;
+}
+
+.navbar-olms .offcanvas .nav-link:hover,
+.navbar-olms .offcanvas .nav-link.active {
+    background: rgba(0, 0, 0, 0.05);
+    /* subtle dark background for hover in light mode */
+}
+
+/* In dark mode, the hover background should be subtly light */
+[data-theme="dark"] .navbar-olms .offcanvas .nav-link:hover,
+[data-theme="dark"] .navbar-olms .offcanvas .nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 /* ── Admin Sidebar ────────────────────────────────────────────── */
 .admin-wrapper {
     display: flex;
