@@ -58,9 +58,23 @@
 [data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select {
     background-color: #1e293b;
-    color: #f8fafc;
     border-color: #334155;
+    color: #f8fafc;
 }
+
+[data-theme="dark"] .offcanvas {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .offcanvas-header {
+    border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
 
 [data-theme="dark"] .form-control:focus,
 [data-theme="dark"] .form-select:focus {
