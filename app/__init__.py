@@ -45,11 +45,9 @@ def create_app(config_name='development'):
 
     # Create database tables if they don't exist (needed for Render/production)
     with app.app_context():
-        try:
-            db.create_all()
-            _create_default_admin()
-        except Exception as e:
-            app.logger.error(f'Database initialization error: {e}')
+        app.logger.info(f'Database URI: {app.config["SQLALCHEMY_DATABASE_URI"][:30]}...')
+        db.create_all()
+        _create_default_admin()
 
     return app
 
