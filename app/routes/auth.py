@@ -75,7 +75,7 @@ def student_login():
             flash('Your account has been blocked. Please contact the administrator.', 'danger')
             return render_template('auth/student_login.html', form=form)
 
-        login_user(user)
+        login_user(user, remember=True)
         flash(f'Welcome back, {user.name}!', 'success')
 
         next_page = request.args.get('next')
@@ -105,7 +105,7 @@ def admin_login():
             flash('This login is for administrators only.', 'warning')
             return render_template('auth/admin_login.html', form=form)
 
-        login_user(user)
+        login_user(user, remember=True)
         flash(f'Welcome back, {user.name}!', 'success')
 
         next_page = request.args.get('next')
