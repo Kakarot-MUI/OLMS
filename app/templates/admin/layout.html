@@ -83,17 +83,42 @@
             </button>
             <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
             <div class="d-flex align-items-center gap-3">
-                <!-- Notification Bell -->
-                <a href="{{ url_for('admin.chat_inbox') }}" class="position-relative text-decoration-none"
-                    style="color: var(--text-secondary);">
-                    <i class="bi bi-bell-fill" style="font-size: 1.25rem;"></i>
-                    {% if unread_chat_count > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                        style="font-size: 0.65rem;">
-                        {{ unread_chat_count }}
-                    </span>
-                    {% endif %}
-                </a>
+                <!-- Notification Bell Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="position-relative text-decoration-none dropdown-toggle" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-secondary);"
+                        id="notifDropdown">
+                        <i class="bi bi-bell-fill" style="font-size: 1.25rem;"></i>
+                        {% if unread_chat_count > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                            style="font-size: 0.65rem;">
+                            {{ unread_chat_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="notifDropdown"
+                        style="min-width: 260px;">
+                        <li class="dropdown-header fw-bold">Notifications</li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        {% if unread_chat_count > 0 %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                href="{{ url_for('admin.chat_inbox') }}">
+                                <i class="bi bi-chat-dots text-primary"></i>
+                                <span>{{ unread_chat_count }} unread message{{ 's' if unread_chat_count > 1 }}</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li>
+                            <span class="dropdown-item text-muted py-3 text-center">
+                                <i class="bi bi-check-circle me-1"></i>No new notifications
+                            </span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
 
                 <span class="text-muted" style="font-size:.85rem;">
                     <i class="bi bi-person-circle me-1"></i>{{ current_user.name }}

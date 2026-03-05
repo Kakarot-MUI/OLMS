@@ -2,7 +2,7 @@
 
 {% block body %}
 {# ── Top Navbar ──────────────────────────────────────────────── #}
-<nav class="navbar navbar-expand-lg navbar-olms">
+<nav class="navbar navbar-expand-lg navbar-olms" style="flex-wrap: wrap;">
     <div class="container">
         <!-- Toggler on the left (Mobile) -->
         <button class="navbar-toggler me-2 border-0 px-1" type="button" data-bs-toggle="offcanvas"
@@ -61,6 +61,18 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('user.profile') }}"><i
                                 class="bi bi-person-circle me-1"></i>Profile</a>
+                    </li>
+                    <!-- Notifications -->
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="{{ url_for('user.my_books') }}">
+                            <i class="bi bi-bell me-1"></i>Notifications
+                            {% set total_alerts = (unread_chat_count or 0) + (due_books_count or 0) %}
+                            {% if total_alerts > 0 %}
+                            <span class="badge rounded-pill bg-danger ms-2" style="font-size: 0.65rem;">
+                                {{ total_alerts }}
+                            </span>
+                            {% endif %}
+                        </a>
                     </li>
                     <!-- Theme Toggle -->
                     <li class="nav-item dropdown">
