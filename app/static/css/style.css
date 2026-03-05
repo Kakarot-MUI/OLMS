@@ -168,7 +168,10 @@ a:hover {
 .navbar-olms .nav-link {
     color: rgba(255, 255, 255, 0.8) !important;
     font-weight: 500;
-    padding: 0.5rem 1rem !important;
+    padding: 0.4rem 0.6rem !important;
+    /* Reduced padding */
+    font-size: 0.95rem;
+    /* Slightly smaller font */
     border-radius: var(--radius-sm);
     transition: var(--transition);
 }
