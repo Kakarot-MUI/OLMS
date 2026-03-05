@@ -30,6 +30,8 @@ class User(UserMixin, db.Model):
 
     # Relationships
     issued_books = db.relationship('IssuedBook', backref='user', lazy='dynamic')
+    saved_books = db.relationship('SavedBook', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    reviews = db.relationship('Review', backref='user', lazy='dynamic', cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -63,6 +65,8 @@ class Book(db.Model):
 
     # Relationships
     issued_records = db.relationship('IssuedBook', backref='book', lazy='dynamic')
+    saved_by = db.relationship('SavedBook', backref='book', lazy='dynamic', cascade='all, delete-orphan')
+    reviews = db.relationship('Review', backref='book', lazy='dynamic', cascade='all, delete-orphan')
 
     # Constraints
     __table_args__ = (
@@ -74,6 +78,13 @@ class Book(db.Model):
     @property
     def is_available(self):
         return self.available_copies > 0
+
+    @property
+    def average_rating(self):
+        reviews = self.reviews.all()
+        if not reviews:
+            return 0.0
+        return round(sum(r.rating for r in reviews) / len(reviews), 1)
 
     def __repr__(self):
         return f'<Book {self.title}>'
@@ -119,3 +130,42 @@ class Message(db.Model):
 
     def __repr__(self):
         return f'<Message {self.sender_id}->{self.receiver_id}>'
+
+
+class SavedBook(db.Model):
+    """User's saved/favorited books."""
+    __tablename__ = 'saved_books'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False, index=True)
+    saved_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    # Prevent saving the same book multiple times
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'book_id', name='uq_user_saved_book'),
+    )
+
+    def __repr__(self):
+        return f'<SavedBook user={self.user_id} book={self.book_id}>'
+
+
+class Review(db.Model):
+    """Student reviews and ratings for books."""
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False, index=True)
+    rating = db.Column(db.Integer, nullable=False) # 1 to 5
+    content = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    # One review per user per book
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'book_id', name='uq_user_book_review'),
+        db.CheckConstraint('rating >= 1 AND rating <= 5', name='ck_rating_range'),
+    )
+
+    def __repr__(self):
+        return f'<Review user={self.user_id} book={self.book_id} rating={self.rating}>'

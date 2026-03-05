@@ -58,8 +58,10 @@ def delete_book(book_id):
         )
     
     # Delete associated issue history to prevent foreign key 500 errors
-    from app.models import IssuedBook
+    from app.models import IssuedBook, SavedBook, Review
     IssuedBook.query.filter_by(book_id=book.id).delete()
+    SavedBook.query.filter_by(book_id=book.id).delete()
+    Review.query.filter_by(book_id=book.id).delete()
     
     db.session.delete(book)
     db.session.commit()
@@ -89,3 +91,65 @@ def get_all_categories():
     """Get all distinct book categories."""
     results = db.session.query(Book.category).distinct().order_by(Book.category).all()
     return [r[0] for r in results]
+
+
+# ── Saved Books ──────────────────────────────────────────────────────────
+
+def save_book(user_id, book_id):
+    """Save a book for a user."""
+    from app.models import SavedBook
+    if not is_book_saved(user_id, book_id):
+        saved = SavedBook(user_id=user_id, book_id=book_id)
+        db.session.add(saved)
+        db.session.commit()
+
+def unsave_book(user_id, book_id):
+    """Remove a book from a user's saved list."""
+    from app.models import SavedBook
+    SavedBook.query.filter_by(user_id=user_id, book_id=book_id).delete()
+    db.session.commit()
+
+def get_user_saved_books(user_id):
+    """Get all saved books for a user."""
+    from app.models import SavedBook
+    return SavedBook.query.filter_by(user_id=user_id).order_by(SavedBook.saved_at.desc()).all()
+
+def is_book_saved(user_id, book_id):
+    """Check if a user has saved a specific book."""
+    from app.models import SavedBook
+    return SavedBook.query.filter_by(user_id=user_id, book_id=book_id).first() is not None
+
+
+# ── Book Reviews ─────────────────────────────────────────────────────────
+
+def add_review(user_id, book_id, rating, content):
+    """Add or update a book review."""
+    from app.models import Review
+    review = Review.query.filter_by(user_id=user_id, book_id=book_id).first()
+    if review:
+        review.rating = rating
+        review.content = content
+    else:
+        review = Review(user_id=user_id, book_id=book_id, rating=rating, content=content)
+        db.session.add(review)
+    db.session.commit()
+
+def get_book_reviews(book_id):
+    """Get all reviews for a book."""
+    from app.models import Review
+    return Review.query.filter_by(book_id=book_id).order_by(Review.created_at.desc()).all()
+
+def get_user_review_for_book(user_id, book_id):
+    """Get a user's specific review for a book."""
+    from app.models import Review
+    return Review.query.filter_by(user_id=user_id, book_id=book_id).first()
+
+def get_book_average_rating(book_id):
+    """Calculate the average rating for a book."""
+    from app.models import Review
+    from sqlalchemy import func
+    result = db.session.query(func.avg(Review.rating)).filter(Review.book_id == book_id).scalar()
+    if result is None:
+        return 0.0
+    return round(float(result), 1)
+

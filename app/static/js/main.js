@@ -80,18 +80,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── Theme Switcher ─────────────────────────────────────────────
-    const savedTheme = localStorage.getItem('olms-theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    const html = document.documentElement;
+    const updateTheme = (theme) => {
+        html.setAttribute('data-theme', theme);
+        html.setAttribute('data-bs-theme', theme);
+        localStorage.setItem('olms-theme', theme);
 
-    const themeBtns = document.querySelectorAll('.theme-btn');
-    themeBtns.forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
+        // Sync all switches
+        document.querySelectorAll('#darkModeSwitch, .theme-toggle-mobile').forEach(sw => {
+            sw.checked = (theme === 'dark');
+        });
+    };
+
+    const savedTheme = localStorage.getItem('olms-theme') || 'light';
+    updateTheme(savedTheme);
+
+    // Handle button clicks (traditional dropdown items)
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
-            var themeToSet = btn.getAttribute('data-theme-value');
-            document.documentElement.setAttribute('data-theme', themeToSet);
-            document.documentElement.setAttribute('data-bs-theme', themeToSet);
-            localStorage.setItem('olms-theme', themeToSet);
+            updateTheme(btn.getAttribute('data-theme-value'));
+        });
+    });
+
+    // Handle switch toggles (new dropdown switch)
+    document.querySelectorAll('#darkModeSwitch, .theme-toggle-mobile').forEach(sw => {
+        sw.addEventListener('change', () => {
+            updateTheme(sw.checked ? 'dark' : 'light');
         });
     });
 });

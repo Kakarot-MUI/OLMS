@@ -81,12 +81,81 @@ def book_detail(book_id):
         book_id=book_id,
         status='issued',
     ).first() is not None
+    
+    # Check if user has previously borrowed the book (for review eligibility)
+    has_borrowed = IssuedBook.query.filter_by(
+        user_id=current_user.id,
+        book_id=book_id
+    ).first() is not None
+
+    is_saved = book_service.is_book_saved(current_user.id, book_id)
+    average_rating = book_service.get_book_average_rating(book_id)
+    reviews = book_service.get_book_reviews(book_id)
+    user_review = book_service.get_user_review_for_book(current_user.id, book_id)
 
     return render_template(
         'user/book_detail.html',
         book=book,
         user_has_book=user_has_book,
+        is_saved=is_saved,
+        average_rating=average_rating,
+        reviews=reviews,
+        user_review=user_review,
+        can_review=has_borrowed
     )
+
+# ── Saved Books ─────────────────────────────────────────────────────────
+
+@user_bp.route('/saved-books')
+@active_required
+def saved_books():
+    """View user's saved books."""
+    saved = book_service.get_user_saved_books(current_user.id)
+    return render_template('user/saved_books.html', saved_books=saved)
+
+@user_bp.route('/book/<int:book_id>/save', methods=['POST'])
+@active_required
+def save_book(book_id):
+    """Save a book for later."""
+    book_service.save_book(current_user.id, book_id)
+    flash('Book saved to your wishlist.', 'success')
+    return redirect(url_for('user.book_detail', book_id=book_id))
+
+@user_bp.route('/book/<int:book_id>/unsave', methods=['POST'])
+@active_required
+def unsave_book(book_id):
+    """Remove a book from saved list."""
+    book_service.unsave_book(current_user.id, book_id)
+    flash('Book removed from your wishlist.', 'info')
+    if request.referrer and 'saved-books' in request.referrer:
+        return redirect(url_for('user.saved_books'))
+    return redirect(url_for('user.book_detail', book_id=book_id))
+
+# ── Reviews ─────────────────────────────────────────────────────────────
+
+@user_bp.route('/book/<int:book_id>/review', methods=['POST'])
+@active_required
+def submit_review(book_id):
+    """Submit a review for a book."""
+    rating = request.form.get('rating', type=int)
+    content = request.form.get('content', '').strip()
+    
+    if not rating or rating < 1 or rating > 5:
+        flash('Invalid rating. Please select 1 to 5 stars.', 'danger')
+        return redirect(url_for('user.book_detail', book_id=book_id))
+        
+    has_borrowed = IssuedBook.query.filter_by(
+        user_id=current_user.id,
+        book_id=book_id
+    ).first() is not None
+    
+    if not has_borrowed:
+        flash('You can only review books you have borrowed.', 'warning')
+        return redirect(url_for('user.book_detail', book_id=book_id))
+        
+    book_service.add_review(current_user.id, book_id, rating, content)
+    flash('Your review has been saved!', 'success')
+    return redirect(url_for('user.book_detail', book_id=book_id))
 
 
 @user_bp.route('/my-books')
