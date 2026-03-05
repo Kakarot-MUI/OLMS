@@ -63,8 +63,9 @@
                                 class="bi bi-person-circle me-1"></i>Profile</a>
                     </li>
                     <!-- Notifications -->
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="{{ url_for('user.my_books') }}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" id="studentNotifDropdown">
                             <i class="bi bi-bell me-1"></i>Notifications
                             {% set total_alerts = (unread_chat_count or 0) + (due_books_count or 0) %}
                             {% if total_alerts > 0 %}
@@ -73,6 +74,39 @@
                             </span>
                             {% endif %}
                         </a>
+                        <ul class="dropdown-menu shadow-sm" aria-labelledby="studentNotifDropdown"
+                            style="min-width: 260px;">
+                            <li class="dropdown-header fw-bold">Notifications</li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% if due_books_count > 0 %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                    href="{{ url_for('user.my_books') }}">
+                                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                                    <span>{{ due_books_count }} book{{ 's' if due_books_count > 1 }} due soon</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if unread_chat_count > 0 %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                    href="{{ url_for('user.chat') }}">
+                                    <i class="bi bi-chat-dots text-primary"></i>
+                                    <span>{{ unread_chat_count }} unread message{{ 's' if unread_chat_count > 1
+                                        }}</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if total_alerts == 0 %}
+                            <li>
+                                <span class="dropdown-item text-muted py-3 text-center">
+                                    <i class="bi bi-check-circle me-1"></i>No new notifications
+                                </span>
+                            </li>
+                            {% endif %}
+                        </ul>
                     </li>
                     <!-- Theme Toggle -->
                     <li class="nav-item dropdown">
