@@ -82,7 +82,19 @@
                 <i class="bi bi-list"></i>
             </button>
             <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Notification Bell -->
+                <a href="{{ url_for('admin.chat_inbox') }}" class="position-relative text-decoration-none"
+                    style="color: var(--text-secondary);">
+                    <i class="bi bi-bell-fill" style="font-size: 1.25rem;"></i>
+                    {% if unread_chat_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                        style="font-size: 0.65rem;">
+                        {{ unread_chat_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
                 <span class="text-muted" style="font-size:.85rem;">
                     <i class="bi bi-person-circle me-1"></i>{{ current_user.name }}
                 </span>
