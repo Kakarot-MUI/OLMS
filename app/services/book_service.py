@@ -49,13 +49,18 @@ def update_book(book_id, title, author, category, total_copies):
 
 
 def delete_book(book_id):
-    """Delete a book if no copies are currently issued."""
+    """Delete a book if no copies are currently issued. Safe-deletes history."""
     book = Book.query.get_or_404(book_id)
     issued_count = book.total_copies - book.available_copies
     if issued_count > 0:
         raise ValueError(
             f'Cannot delete this book. {issued_count} copies are currently issued.'
         )
+    
+    # Delete associated issue history to prevent foreign key 500 errors
+    from app.models import IssuedBook
+    IssuedBook.query.filter_by(book_id=book.id).delete()
+    
     db.session.delete(book)
     db.session.commit()
 

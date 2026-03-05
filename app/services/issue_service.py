@@ -83,12 +83,22 @@ def update_overdue_books():
     return len(overdue_records)
 
 
-def get_issued_books(status=None, page=1, per_page=20):
-    """Get issued books with optional status filter."""
+def get_issued_books(status=None, search_query=None, page=1, per_page=20):
+    """Get issued books with optional status filter and search query."""
     q = IssuedBook.query.join(User).join(Book)
 
     if status:
         q = q.filter(IssuedBook.status == status)
+        
+    if search_query:
+        search_term = f"%{search_query.strip()}%"
+        q = q.filter(
+            db.or_(
+                User.name.ilike(search_term),
+                Book.title.ilike(search_term),
+                IssuedBook.issue_code.ilike(search_term)
+            )
+        )
 
     q = q.order_by(IssuedBook.issue_date.desc())
     return q.paginate(page=page, per_page=per_page, error_out=False)

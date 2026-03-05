@@ -4,6 +4,27 @@
 {% block page_title %}Chat — Student Messages{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h1 class="h4 fw-700 mb-0"><i class="bi bi-chat-dots me-2"></i>Student Messages</h1>
+
+    <!-- Search Form -->
+    <form class="d-flex flex-grow-1" style="max-width: 400px;" method="GET" action="{{ url_for('admin.chat_inbox') }}">
+        <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" name="q" placeholder="Search students by name"
+                value="{{ search_query }}">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+            {% if search_query %}
+            <a href="{{ url_for('admin.chat_inbox') }}" class="btn btn-outline-secondary" title="Clear Search">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
 {% if students %}
 <div class="card-olms">
     <div class="card-body p-0">
@@ -36,8 +57,14 @@
     <div class="card-body">
         <div class="empty-state">
             <i class="bi bi-chat-dots d-block" style="font-size:3rem; color:var(--text-light);"></i>
+            {% if search_query %}
+            <h5>No conversations found</h5>
+            <p>No chat history with a student named "{{ search_query }}".</p>
+            <a href="{{ url_for('admin.chat_inbox') }}" class="btn btn-secondary mt-2">Clear Search</a>
+            {% else %}
             <h5>No conversations yet</h5>
             <p>When students send you messages, they'll appear here.</p>
+            {% endif %}
         </div>
     </div>
 </div>

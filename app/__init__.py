@@ -43,6 +43,37 @@ def create_app(config_name='development'):
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(errors_bp)
 
+    # Global variables for templates (Notifications)
+    @app.context_processor
+    def inject_notifications():
+        from flask_login import current_user
+        from datetime import datetime, timedelta
+        from app.models import Message, IssuedBook
+        
+        unread_chat_count = 0
+        due_books_count = 0
+        
+        if current_user.is_authenticated:
+            # Unread messages sent to the current user
+            unread_chat_count = Message.query.filter_by(
+                receiver_id=current_user.id, 
+                is_read=False
+            ).count()
+            
+            # For students: count books that are due in exactly or less than 3 days, or overdue
+            if current_user.role == 'user':
+                warning_date = datetime.utcnow() + timedelta(days=3)
+                due_books_count = IssuedBook.query.filter(
+                    IssuedBook.user_id == current_user.id,
+                    IssuedBook.status == 'issued',
+                    IssuedBook.due_date <= warning_date
+                ).count()
+                
+        return dict(
+            unread_chat_count=unread_chat_count,
+            due_books_count=due_books_count
+        )
+
     # Create database tables if they don't exist (needed for Render/production)
     with app.app_context():
         app.logger.info(f'Database URI: {app.config["SQLALCHEMY_DATABASE_URI"][:30]}...')

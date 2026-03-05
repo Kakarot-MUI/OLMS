@@ -4,8 +4,25 @@
 {% block page_title %}Manage Members{% endblock %}
 
 {% block content %}
-<div class="mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <p class="text-muted mb-0">{{ pagination.total }} registered members</p>
+
+    <!-- Search Form -->
+    <form class="d-flex w-100" style="max-width: 400px;" method="GET" action="{{ url_for('admin.users') }}">
+        <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" name="q"
+                placeholder="Search by name, email, or roll number" value="{{ search_query }}">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+            {% if search_query %}
+            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary" title="Clear Search">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
 </div>
 
 {% if pagination.items %}
@@ -63,14 +80,14 @@
     <ul class="pagination">
         {% if pagination.has_prev %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.users', page=pagination.prev_num) }}"><i
+            <a class="page-link" href="{{ url_for('admin.users', page=pagination.prev_num, q=search_query) }}"><i
                     class="bi bi-chevron-left"></i></a>
         </li>
         {% endif %}
         {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
         <li class="page-item {{ 'active' if p == pagination.page }}">
-            <a class="page-link" href="{{ url_for('admin.users', page=p) }}">{{ p }}</a>
+            <a class="page-link" href="{{ url_for('admin.users', page=p, q=search_query) }}">{{ p }}</a>
         </li>
         {% else %}
         <li class="page-item disabled"><span class="page-link">…</span></li>
@@ -78,7 +95,7 @@
         {% endfor %}
         {% if pagination.has_next %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.users', page=pagination.next_num) }}"><i
+            <a class="page-link" href="{{ url_for('admin.users', page=pagination.next_num, q=search_query) }}"><i
                     class="bi bi-chevron-right"></i></a>
         </li>
         {% endif %}
@@ -91,8 +108,14 @@
     <div class="card-body">
         <div class="empty-state">
             <i class="bi bi-people d-block"></i>
+            {% if search_query %}
+            <h5>No members found</h5>
+            <p>No results matching "{{ search_query }}". Try adjusting your search.</p>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary mt-2">Clear Search</a>
+            {% else %}
             <h5>No members registered yet</h5>
             <p>Members will appear here once they register.</p>
+            {% endif %}
         </div>
     </div>
 </div>

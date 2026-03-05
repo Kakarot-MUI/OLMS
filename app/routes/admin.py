@@ -31,10 +31,12 @@ def dashboard():
 @admin_bp.route('/books')
 @admin_required
 def books():
-    """List all books."""
+    """List all books with optional search."""
     page = request.args.get('page', 1, type=int)
-    pagination = book_service.search_books(page=page, per_page=15)
-    return render_template('admin/books.html', pagination=pagination)
+    search_query = request.args.get('q', '').strip()
+    
+    pagination = book_service.search_books(query=search_query, page=page, per_page=15)
+    return render_template('admin/books.html', pagination=pagination, search_query=search_query)
 
 
 @admin_bp.route('/books/add', methods=['GET', 'POST'])
@@ -93,12 +95,27 @@ def delete_book(book_id):
 @admin_bp.route('/users')
 @admin_required
 def users():
-    """List all members."""
+    """List all members with optional search."""
     page = request.args.get('page', 1, type=int)
-    pagination = User.query.filter_by(role='user').order_by(
+    search_query = request.args.get('q', '').strip()
+    
+    query = User.query.filter_by(role='user')
+    
+    if search_query:
+        search_term = f"%{search_query}%"
+        query = query.filter(
+            db.or_(
+                User.name.ilike(search_term),
+                User.email.ilike(search_term),
+                User.roll_number.ilike(search_term)
+            )
+        )
+        
+    pagination = query.order_by(
         User.created_at.desc()
     ).paginate(page=page, per_page=15, error_out=False)
-    return render_template('admin/users.html', pagination=pagination)
+    
+    return render_template('admin/users.html', pagination=pagination, search_query=search_query)
 
 
 @admin_bp.route('/users/toggle/<int:user_id>', methods=['POST'])
@@ -281,10 +298,12 @@ def issued_books():
     """View all issued books."""
     page = request.args.get('page', 1, type=int)
     status_filter = request.args.get('status', '')
+    search_query = request.args.get('q', '').strip()
     issue_service.update_overdue_books()
 
     pagination = issue_service.get_issued_books(
         status=status_filter if status_filter else None,
+        search_query=search_query if search_query else None,
         page=page,
         per_page=20,
     )
@@ -292,6 +311,7 @@ def issued_books():
         'admin/issued_books.html',
         pagination=pagination,
         current_status=status_filter,
+        search_query=search_query,
     )
 
 
@@ -340,15 +360,32 @@ def lookup_code():
 @admin_bp.route('/history')
 @admin_required
 def history():
-    """Admin history — all issue/return transactions."""
+    """Admin history — all issue/return transactions with optional search."""
+    search_query = request.args.get('q', '').strip()
     issue_service.update_overdue_books()
-    all_issues = IssuedBook.query.order_by(IssuedBook.issue_date.desc()).all()
-    total = len(all_issues)
-    active = sum(1 for i in all_issues if i.status in ('issued', 'overdue'))
-    returned = sum(1 for i in all_issues if i.status == 'returned')
-    overdue = sum(1 for i in all_issues if i.status == 'overdue')
+    
+    q = IssuedBook.query.join(User).join(Book)
+    if search_query:
+        search_term = f"%{search_query}%"
+        q = q.filter(
+            db.or_(
+                User.name.ilike(search_term),
+                Book.title.ilike(search_term),
+                IssuedBook.issue_code.ilike(search_term)
+            )
+        )
+        
+    all_issues = q.order_by(IssuedBook.issue_date.desc()).all()
+    
+    # Calculate stats based on the unfiltered totals to maintain dashboard accuracy
+    total_query_all = IssuedBook.query.all()
+    total = len(total_query_all)
+    active = sum(1 for i in total_query_all if i.status in ('issued', 'overdue'))
+    returned = sum(1 for i in total_query_all if i.status == 'returned')
+    overdue = sum(1 for i in total_query_all if i.status == 'overdue')
+    
     return render_template('admin/history.html', history=all_issues,
-                           total=total, active=active, returned=returned, overdue=overdue)
+                           total=total, active=active, returned=returned, overdue=overdue, search_query=search_query)
 
 
 # ── Profile ──────────────────────────────────────────────────────────────
@@ -390,8 +427,10 @@ def chat_inbox():
     from flask_login import current_user
     from sqlalchemy import func, case, or_, and_
 
+    search_query = request.args.get('q', '').strip()
+
     # Get all students who have exchanged messages with any admin
-    students = db.session.query(
+    query = db.session.query(
         User,
         func.max(Message.created_at).label('last_msg_time'),
         func.sum(case(
@@ -403,9 +442,14 @@ def chat_inbox():
     ).filter(
         User.role == 'user',
         or_(Message.sender_id == current_user.id, Message.receiver_id == current_user.id)
-    ).group_by(User.id).order_by(func.max(Message.created_at).desc()).all()
+    )
 
-    return render_template('admin/chat_inbox.html', students=students)
+    if search_query:
+        query = query.filter(User.name.ilike(f"%{search_query}%"))
+
+    students = query.group_by(User.id).order_by(func.max(Message.created_at).desc()).all()
+
+    return render_template('admin/chat_inbox.html', students=students, search_query=search_query)
 
 
 @admin_bp.route('/chat/<int:student_id>', methods=['GET', 'POST'])

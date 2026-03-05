@@ -5,16 +5,37 @@
 
 {% block content %}
 {# ── Status Filter ───────────────────────────────────────────── #}
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <p class="text-muted mb-0">{{ pagination.total }} records found</p>
+
+    <!-- Search Form -->
+    <form class="d-flex flex-grow-1" style="max-width: 400px;" method="GET"
+        action="{{ url_for('admin.issued_books') }}">
+        <input type="hidden" name="status" value="{{ current_status }}">
+        <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" name="q" placeholder="Search code, student, or book"
+                value="{{ search_query }}">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+            {% if search_query %}
+            <a href="{{ url_for('admin.issued_books', status=current_status) }}" class="btn btn-outline-secondary"
+                title="Clear Search">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+
     <div class="btn-group" role="group">
-        <a href="{{ url_for('admin.issued_books') }}"
+        <a href="{{ url_for('admin.issued_books', q=search_query) }}"
             class="btn btn-sm {{ 'btn-primary' if not current_status else 'btn-outline-primary' }}">All</a>
-        <a href="{{ url_for('admin.issued_books', status='issued') }}"
+        <a href="{{ url_for('admin.issued_books', status='issued', q=search_query) }}"
             class="btn btn-sm {{ 'btn-primary' if current_status == 'issued' else 'btn-outline-primary' }}">Issued</a>
-        <a href="{{ url_for('admin.issued_books', status='overdue') }}"
+        <a href="{{ url_for('admin.issued_books', status='overdue', q=search_query) }}"
             class="btn btn-sm {{ 'btn-primary' if current_status == 'overdue' else 'btn-outline-primary' }}">Overdue</a>
-        <a href="{{ url_for('admin.issued_books', status='returned') }}"
+        <a href="{{ url_for('admin.issued_books', status='returned', q=search_query) }}"
             class="btn btn-sm {{ 'btn-primary' if current_status == 'returned' else 'btn-outline-primary' }}">Returned</a>
     </div>
 </div>
@@ -91,14 +112,15 @@
         {% if pagination.has_prev %}
         <li class="page-item">
             <a class="page-link"
-                href="{{ url_for('admin.issued_books', page=pagination.prev_num, status=current_status) }}"><i
+                href="{{ url_for('admin.issued_books', page=pagination.prev_num, status=current_status, q=search_query) }}"><i
                     class="bi bi-chevron-left"></i></a>
         </li>
         {% endif %}
         {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
         <li class="page-item {{ 'active' if p == pagination.page }}">
-            <a class="page-link" href="{{ url_for('admin.issued_books', page=p, status=current_status) }}">{{ p }}</a>
+            <a class="page-link"
+                href="{{ url_for('admin.issued_books', page=p, status=current_status, q=search_query) }}">{{ p }}</a>
         </li>
         {% else %}
         <li class="page-item disabled"><span class="page-link">…</span></li>
@@ -107,7 +129,7 @@
         {% if pagination.has_next %}
         <li class="page-item">
             <a class="page-link"
-                href="{{ url_for('admin.issued_books', page=pagination.next_num, status=current_status) }}"><i
+                href="{{ url_for('admin.issued_books', page=pagination.next_num, status=current_status, q=search_query) }}"><i
                     class="bi bi-chevron-right"></i></a>
         </li>
         {% endif %}
@@ -120,8 +142,15 @@
     <div class="card-body">
         <div class="empty-state">
             <i class="bi bi-inbox d-block"></i>
+            {% if search_query %}
+            <h5>No records found</h5>
+            <p>No issues matching "{{ search_query }}".</p>
+            <a href="{{ url_for('admin.issued_books', status=current_status) }}" class="btn btn-secondary mt-2">Clear
+                Search</a>
+            {% else %}
             <h5>No records found</h5>
             <p>No book issue records match the current filter.</p>
+            {% endif %}
         </div>
     </div>
 </div>
