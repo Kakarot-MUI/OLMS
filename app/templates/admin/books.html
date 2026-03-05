@@ -48,7 +48,7 @@
             <tbody>
                 {% for book in pagination.items %}
                 <tr>
-                    <td>{{ book.id }}</td>
+                    <td>{{ (pagination.page - 1) * pagination.per_page + loop.index }}</td>
                     <td><strong>{{ book.title }}</strong></td>
                     <td>{{ book.author }}</td>
                     <td><span class="badge bg-light text-dark">{{ book.category }}</span></td>
