@@ -1,6 +1,6 @@
 {
-    "name": "Smart Library",
-    "short_name": "Smart Library",
+    "name": "SMART LIBRARY",
+    "short_name": "SMART LIBRARY",
     "description": "Online Library Management System",
     "start_url": "/",
     "display": "standalone",
