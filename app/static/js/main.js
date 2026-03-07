@@ -175,11 +175,15 @@ async function subscribeUserToPush() {
     }
 }
 
-// Optionally, automatically prompt for background notifications if logged in
-if ('Notification' in window && Notification.permission === 'default') {
-    // We delay this slightly so as not to overwhelm the user on first load
-    setTimeout(subscribeUserToPush, 3000);
-} else if ('Notification' in window && Notification.permission === 'granted') {
-    // If they already granted it, ensure we are subscribed (in case tokens changed)
-    subscribeUserToPush();
-}
+// Execute subscription logic when page loads
+document.addEventListener('DOMContentLoaded', function () {
+    if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+            // Delay slightly to not overwhelm user on first load
+            setTimeout(subscribeUserToPush, 3000);
+        } else if (Notification.permission === 'granted') {
+            // Ensure subscription is active and synced with DB
+            subscribeUserToPush();
+        }
+    }
+});
