@@ -64,8 +64,10 @@
                             <code
                                 style="font-weight:600; font-size:.85rem; color:var(--primary); background:var(--primary-light); padding:3px 8px; border-radius:4px;"
                                 id="code-{{ issue.issue_code }}">{{ issue.issue_code }}</code>
-                            <button type="button" class="btn btn-sm btn-light py-0 px-2 text-muted"
-                                onclick="copyIssueCode('{{ issue.issue_code }}')" title="Copy Code">
+                            <button type="button" class="btn btn-sm py-0 px-2"
+                                style="background:transparent; border:none; color:inherit; opacity:0.7;"
+                                onclick="copyIssueCode('{{ issue.issue_code }}', this)" title="Copy Code"
+                                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">
                                 <i class="bi bi-clipboard"></i>
                             </button>
                         </div>
@@ -101,6 +103,52 @@
                                     <i class="bi bi-box-arrow-in-left"></i>
                                 </button>
                             </form>
+                            <script>
+                                document.querySelectorAll('[data-confirm]').forEach(form => {
+                                    form.onsubmit = function (e) {
+                                        if (!confirm(this.dataset.confirm)) {
+                                            e.preventDefault();
+                                        }
+                                    }
+                                });
+
+                                function copyIssueCode(code, btn) {
+                                    const successHtml = '<i class="bi bi-check2 text-success"></i>';
+                                    const failHtml = '<i class="bi bi-x-circle text-danger"></i>';
+                                    const prevHtml = btn.innerHTML;
+
+                                    if (navigator.clipboard && window.isSecureContext) {
+                                        navigator.clipboard.writeText(code).then(() => {
+                                            btn.innerHTML = successHtml;
+                                            setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
+                                        }).catch(err => {
+                                            fallbackCopyTextToClipboard(code, btn, successHtml, failHtml, prevHtml);
+                                        });
+                                    } else {
+                                        fallbackCopyTextToClipboard(code, btn, successHtml, failHtml, prevHtml);
+                                    }
+                                }
+
+                                function fallbackCopyTextToClipboard(text, btn, successHtml, failHtml, prevHtml) {
+                                    var textArea = document.createElement("textarea");
+                                    textArea.value = text;
+                                    textArea.style.position = "fixed";
+                                    textArea.style.left = "-999999px";
+                                    textArea.style.top = "-999999px";
+                                    document.body.appendChild(textArea);
+                                    textArea.focus();
+                                    textArea.select();
+                                    try {
+                                        var successful = document.execCommand('copy');
+                                        btn.innerHTML = successful ? successHtml : failHtml;
+                                        setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
+                                    } catch (err) {
+                                        btn.innerHTML = failHtml;
+                                        setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
+                                    }
+                                    document.body.removeChild(textArea);
+                                }
+                            </script>
                         </div>
                         {% else %}
                         <span class="text-muted" style="font-size:.8rem;">Done</span>
