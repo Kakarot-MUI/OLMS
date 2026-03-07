@@ -90,6 +90,7 @@
                         <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
                     </td>
                     <td>
+                        {% if issue.status in ['issued', 'overdue'] %}
                         <div class="d-flex gap-1" style="z-index: 10;">
                             <a href="{{ url_for('admin.edit_due_date', issue_id=issue.id) }}"
                                 class="btn btn-sm btn-outline-warning" title="Edit due date">
