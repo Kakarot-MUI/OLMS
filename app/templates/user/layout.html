@@ -93,6 +93,12 @@
                     <li><a class="dropdown-item" href="{{ url_for('user.saved_books') }}"><i
                                 class="bi bi-heart me-2"></i>Saved Books</a></li>
                     <li>
+                        <button class="dropdown-item d-flex align-items-center justify-content-between"
+                            onclick="subscribeUserToPush()">
+                            <span><i class="bi bi-bell me-2"></i>Enable Notifications</span>
+                        </button>
+                    </li>
+                    <li>
                         <button
                             class="dropdown-item d-flex align-items-center justify-content-between theme-btn-toggle">
                             <span><i class="bi bi-moon-stars me-2"></i>Dark Mode</span>
@@ -197,6 +203,11 @@
                     <li class="nav-item">
                         <a class="nav-link py-2" href="{{ url_for('user.profile') }}"><i
                                 class="bi bi-person-circle me-3"></i>Profile Settings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2" href="#" onclick="subscribeUserToPush(); return false;">
+                            <i class="bi bi-bell me-3"></i>Enable Notifications
+                        </a>
                     </li>
                     <li class="nav-item mt-4 pt-4 border-top">
                         <a class="nav-link py-2 text-danger" href="{{ url_for('auth.logout') }}">
