@@ -96,19 +96,56 @@ def create_app(config_name='development'):
         _create_default_admin()
         
         # Auto-migrate new columns for existing production databases (PostgreSQL/MySQL/SQLite compat)
+        import os
         from sqlalchemy import text
-        try:
-            db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0"))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+        
+        db_url = os.environ.get('DATABASE_URL', '')
+        if db_url.startswith('postgres'):
+            import psycopg2
+            # Connect directly to perform robust PostgreSQL schema alterations
+            # psycopg2 is required for Render deployments to avoid transaction block errors on duplicate columns
+            try:
+                # Need to use the raw postgres:// URL for psycopg2 if that's what's in the env
+                conn = psycopg2.connect(db_url.replace('postgresql://', 'postgres://'))
+                conn.autocommit = True
+                cursor = conn.cursor()
+                
+                # Check if fine_amount exists
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='issued_books' AND column_name='fine_amount';
+                """)
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0;")
+                    app.logger.info("Added fine_amount column to PostgreSQL.")
 
-        try:
-            # PostgreSQL requires distinct boolean types
-            db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE"))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+                # Check if fine_paid exists
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='issued_books' AND column_name='fine_paid';
+                """)
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE;")
+                    app.logger.info("Added fine_paid column to PostgreSQL.")
+                    
+                conn.close()
+            except Exception as e:
+                app.logger.error(f"PostgreSQL Auto-Migration Error: {e}")
+        else:
+            # Fallback for local SQLite/MySQL
+            try:
+                db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            try:
+                db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
     return app
 
