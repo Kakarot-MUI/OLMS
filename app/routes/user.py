@@ -245,6 +245,16 @@ def chat():
             )
             db.session.add(msg)
             db.session.commit()
+            
+            # Send Push Notification to Admin
+            from app.services.issue_service import send_push_notification
+            send_push_notification(
+                user_id=admin.id,
+                title=f"New message from {current_user.name}",
+                body=content[:50] + "..." if len(content) > 50 else content,
+                url=f"/admin/chat/{current_user.id}"
+            )
+            
         return redirect(url_for('user.chat'))
 
     # Mark messages from admin as read

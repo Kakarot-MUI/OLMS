@@ -188,12 +188,21 @@ def edit_due_date(issue_id):
         try:
             new_date = datetime.strptime(form.due_date.data, '%Y-%m-%d')
             issued.due_date = new_date
-            # If was overdue but new date is in future, reset to issued
             if issued.status == 'overdue' and new_date > datetime.utcnow():
                 issued.status = 'issued'
             elif issued.status == 'issued' and new_date < datetime.utcnow():
                 issued.status = 'overdue'
             db.session.commit()
+            
+            # Send Push Notification to Student
+            from app.services.issue_service import send_push_notification
+            send_push_notification(
+                user_id=issued.user_id,
+                title="📚 Due Date Extended!",
+                body=f"The Librarian has extended your due date for '{issued.book.title}' to {new_date.strftime('%b %d, %Y')}.",
+                url="/user/my-books"
+            )
+            
             flash(f'Due date updated to {new_date.strftime("%b %d, %Y")}!', 'success')
             return redirect(url_for('admin.issued_books'))
         except ValueError:

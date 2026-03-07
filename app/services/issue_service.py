@@ -41,6 +41,15 @@ def issue_book(user_id, book_id, days=None):
         book.available_copies -= 1
         db.session.add(issued_book)
         db.session.commit()
+        
+        # Notify the student that the book was issued
+        send_push_notification(
+            user_id=user_id,
+            title="📖 Book Issued!",
+            body=f"'{book.title}' has been successfully issued to you. Happy reading!",
+            url="/user/my-books"
+        )
+        
         return issued_book
     except Exception:
         db.session.rollback()
