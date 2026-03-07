@@ -70,7 +70,7 @@
             <div class="book-card {{ 'disabled-book' if not book.is_available else '' }}" style="position:relative;">
                 {% if not book.is_available and book.id in earliest_available %}
                 <div
-                    style="position:absolute; top:-10px; right:-10px; background:linear-gradient(135deg, #ff9d2f, #ff6126); color:white; padding:4px 12px; border-radius:12px; font-size:.75rem; font-weight:800; z-index:10; box-shadow:0 4px 15px rgba(255,100,30,0.4); border:1px solid rgba(255,255,255,0.2); letter-spacing:0.5px;">
+                    style="position:absolute; top:8px; right:8px; background:linear-gradient(135deg, #ff9d2f, #ff6126); color:white; padding:4px 12px; border-radius:12px; font-size:.75rem; font-weight:800; z-index:10; box-shadow:0 4px 15px rgba(255,100,30,0.4); border:1px solid rgba(255,255,255,0.2); letter-spacing:0.5px;">
                     {% set days = earliest_available[book.id] %}
                     {% if days < 0 %} Overdue {% elif days==0 %} Due Today {% elif days==1 %} Available Tomorrow {% else
                         %} Available in {{ days }} Days {% endif %} </div>
