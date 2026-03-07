@@ -168,12 +168,17 @@ async function subscribeUserToPush() {
             applicationServerKey: convertedVapidKey
         });
 
+        // Retrieve the CSRF token to prevent Flask from rejecting the POST request
+        const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : '';
+
         // Send the subscription details to our Flask backend to save in the database
         await fetch('/api/push/subscribe', {
             method: 'POST',
             body: JSON.stringify(subscription),
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             }
         });
 
@@ -186,13 +191,16 @@ async function subscribeUserToPush() {
 
 // Execute subscription logic when page loads
 document.addEventListener('DOMContentLoaded', function () {
-    if ('Notification' in window) {
-        if (Notification.permission === 'default') {
-            // Delay slightly to not overwhelm user on first load
-            setTimeout(subscribeUserToPush, 3000);
-        } else if (Notification.permission === 'granted') {
-            // Ensure subscription is active and synced with DB
-            subscribeUserToPush();
-        }
+    if ('Notification' in window && Notification.permission === 'granted') {
+        // Automatically sync subscription if they already granted permission in the past
+        subscribeUserToPush();
     }
+
+    // Explicitly bind the click event to any button with the enable-push-btn class
+    document.querySelectorAll('.enable-push-btn').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            subscribeUserToPush();
+        });
+    });
 });

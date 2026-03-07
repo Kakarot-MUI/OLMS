@@ -93,8 +93,7 @@
                     <li><a class="dropdown-item" href="{{ url_for('user.saved_books') }}"><i
                                 class="bi bi-heart me-2"></i>Saved Books</a></li>
                     <li>
-                        <button class="dropdown-item d-flex align-items-center justify-content-between"
-                            onclick="subscribeUserToPush()">
+                        <button class="dropdown-item d-flex align-items-center justify-content-between enable-push-btn">
                             <span><i class="bi bi-bell me-2"></i>Enable Notifications</span>
                         </button>
                     </li>
@@ -205,7 +204,7 @@
                                 class="bi bi-person-circle me-3"></i>Profile Settings</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link py-2" href="#" onclick="subscribeUserToPush(); return false;">
+                        <a class="nav-link py-2 enable-push-btn" href="#">
                             <i class="bi bi-bell me-3"></i>Enable Notifications
                         </a>
                     </li>
