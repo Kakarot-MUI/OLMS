@@ -174,6 +174,90 @@ def return_book(issue_id):
     return redirect(url_for('admin.issued_books'))
 
 
+@admin_bp.route('/resolve/<int:issue_id>', methods=['POST'])
+@admin_required
+def resolve_lost_damaged(issue_id):
+    """Process a book marked as lost or damaged."""
+    issue = IssuedBook.query.get_or_404(issue_id)
+    if issue.status == 'returned':
+        flash('Cannot resolve a book that is already returned.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+        
+    resolution_type = request.form.get('resolution_type')
+    fine_amount_str = request.form.get('fine_amount', '0')
+    
+    try:
+        fine_amount = float(fine_amount_str)
+    except ValueError:
+        flash('Invalid fine amount.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+        
+    if resolution_type not in ['lost', 'damaged']:
+        flash('Invalid resolution type.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+        
+    book = issue.book
+    
+    # If the book is completely lost, it permanently leaves inventory
+    if resolution_type == 'lost':
+        if book.total_copies > 0:
+            book.total_copies -= 1
+        issue.status = 'lost'
+        flash_msg = f"Book officially marked as LOST. Total inventory reduced by 1. ₹{fine_amount} fine applied to {issue.user.name}."
+    else:
+        # If it's just damaged but still in the library's possession
+        if book.available_copies < book.total_copies:
+            book.available_copies += 1
+        issue.status = 'damaged'
+        flash_msg = f"Book marked as DAMAGED. Returned to inventory. ₹{fine_amount} fine applied to {issue.user.name}."
+        
+    issue.return_date = datetime.utcnow()
+    issue.fine_amount = fine_amount
+    issue.fine_paid = False if fine_amount > 0 else True
+    
+    db.session.commit()
+    flash(flash_msg, 'warning')
+    return redirect(url_for('admin.issued_books'))
+
+@admin_bp.route('/fines')
+@admin_required
+def fines():
+    """View students with outstanding fines from lost/damaged books."""
+    search_query = request.args.get('search', '', type=str)
+    page = request.args.get('page', 1, type=int)
+
+    query = IssuedBook.query.filter(IssuedBook.fine_amount > 0, IssuedBook.fine_paid == False)
+    
+    if search_query:
+        search_term = f"%{search_query}%"
+        query = query.join(User).filter(
+            db.or_(
+                User.name.ilike(search_term),
+                User.email.ilike(search_term),
+                User.roll_number.ilike(search_term),
+                IssuedBook.issue_code.ilike(search_term)
+            )
+        )
+        
+    pagination = query.order_by(IssuedBook.return_date.desc()).paginate(page=page, per_page=15, error_out=False)
+    return render_template('admin/fines.html', pagination=pagination, search_query=search_query)
+
+
+@admin_bp.route('/fines/clear/<int:issue_id>', methods=['POST'])
+@admin_required
+def clear_fine(issue_id):
+    """Mark a student's fine as paid, unflagging their account."""
+    issue = IssuedBook.query.get_or_404(issue_id)
+    if issue.fine_paid:
+        flash("This fine is already marked as paid.", "info")
+        return redirect(url_for('admin.fines'))
+        
+    issue.fine_paid = True
+    db.session.commit()
+    flash(f'Successfully cleared ₹{issue.fine_amount} fine for {issue.user.name}. Account unlocked.', 'success')
+    return redirect(url_for('admin.fines'))
+
+
 @admin_bp.route('/edit-due-date/<int:issue_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_due_date(issue_id):

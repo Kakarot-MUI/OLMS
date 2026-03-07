@@ -47,6 +47,17 @@ class User(UserMixin, db.Model):
     def is_active_user(self):
         return self.status == 'active'
 
+    @property
+    def total_unpaid_fines(self):
+        """Calculate the total amount of unpaid fines for this user."""
+        unpaid = self.issued_books.filter_by(fine_paid=False).filter(IssuedBook.fine_amount > 0).all()
+        return sum(book.fine_amount for book in unpaid)
+
+    @property
+    def is_flagged(self):
+        """Returns True if the user has any unpaid fines, blocking them from issuing new books."""
+        return self.total_unpaid_fines > 0
+
     def __repr__(self):
         return f'<User {self.email}>'
 
@@ -102,6 +113,8 @@ class IssuedBook(db.Model):
     due_date = db.Column(db.DateTime, nullable=False, index=True)
     return_date = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(20), nullable=False, default='issued', index=True)
+    fine_amount = db.Column(db.Float, nullable=False, default=0.0)
+    fine_paid = db.Column(db.Boolean, nullable=False, default=False)
 
     @staticmethod
     def generate_issue_code():

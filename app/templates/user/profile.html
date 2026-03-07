@@ -15,6 +15,18 @@
     </div>
 </div>
 
+{# ── Fines & Account Locked Alert ────────────────────────────── #}
+{% if current_user.is_flagged %}
+<div class="alert alert-danger d-flex align-items-center mb-4 shadow-sm" style="border-left:5px solid #dc3545;">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3 fs-3"></i>
+    <div>
+        <h5 class="alert-heading mb-1 fw-bold">Account Temporarily Locked</h5>
+        <p class="mb-0">You have an outstanding fine of <strong>₹{{ current_user.total_unpaid_fines }}</strong> for a
+            lost or damaged book. You cannot borrow any new books until this fine is cleared with the Library Admin.</p>
+    </div>
+</div>
+{% endif %}
+
 {# ── Info Cards ──────────────────────────────────────────────── #}
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-md-4">

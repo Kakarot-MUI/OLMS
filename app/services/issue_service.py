@@ -8,15 +8,20 @@ def issue_book(user_id, book_id, days=None):
     """Issue a book to a user with transactional safety."""
     user = User.query.get(user_id)
     if not user:
-        raise ValueError('User not found.')
+        return False, 'User not found.'
     if user.status != 'active':
-        raise ValueError('This user account is blocked.')
+        return False, 'This user account is blocked.'
 
     book = Book.query.get(book_id)
     if not book:
-        raise ValueError('Book not found.')
+        return False, "Book not found."
+        
+    # Check if user is flagged for unpaid fines
+    if user.is_flagged:
+        return False, f"Account locked due to unpaid fines of ₹{user.total_unpaid_fines}. Please clear debts before borrowing."
+
     if book.available_copies <= 0:
-        raise ValueError('No copies of this book are currently available.')
+        return False, "No copies of this book are currently available."
 
     # Check if user already has this book issued
     existing = IssuedBook.query.filter_by(

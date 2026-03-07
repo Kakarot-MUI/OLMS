@@ -90,18 +90,52 @@
                         <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
                     </td>
                     <td>
-                        {% if issue.status in ['issued', 'overdue'] %}
-                        <div class="d-flex gap-1">
+                        <div class="d-flex gap-1" style="z-index: 10;">
                             <a href="{{ url_for('admin.edit_due_date', issue_id=issue.id) }}"
                                 class="btn btn-sm btn-outline-warning" title="Edit due date">
                                 <i class="bi bi-calendar-event"></i>
                             </a>
-                            <form method="POST" action="{{ url_for('admin.return_book', issue_id=issue.id) }}"
-                                data-confirm="Confirm return of '{{ issue.book.title }}'?">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-outline-success" title="Return book">
-                                    <i class="bi bi-box-arrow-in-left"></i>
+                            <div class="btn-group position-relative" style="z-index: 10;">
+                                <form method="POST" action="{{ url_for('admin.return_book', issue_id=issue.id) }}"
+                                    data-confirm="Confirm return of '{{ issue.book.title }}'?">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Return book"
+                                        style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                                        <i class="bi bi-box-arrow-in-left"></i>
+                                    </button>
+                                </form>
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-success dropdown-toggle dropdown-toggle-split"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
                                 </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow"
+                                    style="min-width: 200px; z-index: 1050;">
+                                    <li>
+                                        <h6 class="dropdown-header">Resolve Issue</h6>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#"
+                                            onclick="promptFine('{{ issue.id }}', 'lost', '{{ issue.book.title }}')">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>Mark as Lost
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-warning" href="#"
+                                            onclick="promptFine('{{ issue.id }}', 'damaged', '{{ issue.book.title }}')">
+                                            <i class="bi bi-book-half me-2"></i>Mark as Damaged
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- Hidden forms for Lost/Damaged actions -->
+                            <form id="resolve-form-{{ issue.id }}" method="POST"
+                                action="{{ url_for('admin.resolve_lost_damaged', issue_id=issue.id) }}"
+                                style="display: none;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="resolution_type" id="resolution-type-{{ issue.id }}"
+                                    value="">
+                                <input type="hidden" name="fine_amount" id="fine-amount-{{ issue.id }}" value="">
                             </form>
                             <script>
                                 document.querySelectorAll('[data-confirm]').forEach(form => {
@@ -111,6 +145,17 @@
                                         }
                                     }
                                 });
+
+                                function promptFine(issueId, type, bookTitle) {
+                                    const amount = window.prompt(`Marking '${bookTitle}' as ${type.toUpperCase()}.\n\nEnter the fine amount to charge the student (e.g. 500):`, "500");
+                                    if (amount !== null && !isNaN(parseFloat(amount))) {
+                                        document.getElementById(`resolution-type-${issueId}`).value = type;
+                                        document.getElementById(`fine-amount-${issueId}`).value = parseFloat(amount);
+                                        document.getElementById(`resolve-form-${issueId}`).submit();
+                                    } else if (amount !== null) {
+                                        alert("Please enter a valid numeric fine amount.");
+                                    }
+                                }
 
                                 function copyIssueCode(code, btn) {
                                     const successHtml = '<i class="bi bi-check2 text-success"></i>';
