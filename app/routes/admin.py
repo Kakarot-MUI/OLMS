@@ -475,6 +475,16 @@ def chat_with_student(student_id):
             )
             db.session.add(msg)
             db.session.commit()
+            
+            # Send Push Notification to Student
+            from app.services.issue_service import send_push_notification
+            send_push_notification(
+                user_id=student_id,
+                title="New message from Librarian",
+                body=content[:50] + "..." if len(content) > 50 else content,
+                url="/user/chat"
+            )
+            
         return redirect(url_for('admin.chat_with_student', student_id=student_id))
 
     # Mark messages from this student as read

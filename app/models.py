@@ -169,3 +169,22 @@ class Review(db.Model):
 
     def __repr__(self):
         return f'<Review user={self.user_id} book={self.book_id} rating={self.rating}>'
+
+
+class PushSubscription(db.Model):
+    """User web push subscriptions for background notifications."""
+    __tablename__ = 'push_subscriptions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    endpoint = db.Column(db.Text, nullable=False, unique=True)
+    p256dh = db.Column(db.String(255), nullable=False)
+    auth = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    # Relationship back to User
+    user = db.relationship('User', backref=db.backref('push_subscriptions', lazy='dynamic', cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<PushSubscription user={self.user_id}>'
+

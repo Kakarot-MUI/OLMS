@@ -22,6 +22,14 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     app.config.from_object(config_by_name[config_name])
 
+    # VAPID Keys for Web Push Notifications
+    import os
+    app.config['VAPID_PUBLIC_KEY'] = os.environ.get('VAPID_PUBLIC_KEY')
+    app.config['VAPID_PRIVATE_KEY'] = os.environ.get('VAPID_PRIVATE_KEY')
+    app.config['VAPID_CLAIMS'] = {
+        "sub": "mailto:admin@smartlibrary.com"
+    }
+
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
@@ -37,11 +45,13 @@ def create_app(config_name='development'):
     from app.routes.admin import admin_bp
     from app.routes.user import user_bp
     from app.routes.errors import errors_bp
+    from app.routes.push import bp as push_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(errors_bp)
+    app.register_blueprint(push_bp)
 
     # Global variables for templates (Notifications)
     @app.context_processor

@@ -110,3 +110,76 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+/* ── Web Push Notifications ──────────────────────────────────────
+   Handles user permission, subscription generation, and backend sync.
+   ═══════════════════════════════════════════════════════════════════ */
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function subscribeUserToPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.warn('Push messaging is not supported.');
+        return;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+
+        // Ensure user granted permission
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            console.log('Permission not granted for Notification');
+            return;
+        }
+
+        // Fetch the VAPID public key from our backend
+        const response = await fetch('/api/push/vapid_public_key');
+        if (!response.ok) throw new Error('Could not fetch VAPID key');
+
+        const data = await response.json();
+        const convertedVapidKey = urlBase64ToUint8Array(data.public_key);
+
+        // Subscribe the user using the VAPID key
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+        });
+
+        // Send the subscription details to our Flask backend to save in the database
+        await fetch('/api/push/subscribe', {
+            method: 'POST',
+            body: JSON.stringify(subscription),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('User is subscribed to Push Notifications.');
+
+    } catch (error) {
+        console.error('Failed to subscribe the user: ', error);
+    }
+}
+
+// Optionally, automatically prompt for background notifications if logged in
+if ('Notification' in window && Notification.permission === 'default') {
+    // We delay this slightly so as not to overwhelm the user on first load
+    setTimeout(subscribeUserToPush, 3000);
+} else if ('Notification' in window && Notification.permission === 'granted') {
+    // If they already granted it, ensure we are subscribed (in case tokens changed)
+    subscribeUserToPush();
+}

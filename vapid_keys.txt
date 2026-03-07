@@ -1,0 +1,3 @@
+# Add these to your .env file and Render environment variables
+VAPID_PRIVATE_KEY=EGEp7IMGYi2PyxSPPnS0gMxYdWlo57PHeUgt1_kl7Oo
+VAPID_PUBLIC_KEY=BAyj830BVSz5keR5W8QVvPApqsrN_uGjGhcxCqteZncy0kOVf4jCU3r87Z72KjLoqr9b8xnE9QoeGnpvcPUaTRU

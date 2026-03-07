@@ -164,3 +164,55 @@ def get_user_borrowing_stats(user_id):
         'overdue': overdue,
         'returned': returned,
     }
+
+
+def send_push_notification(user_id, title, body, url="/"):
+    """Send a Web Push Notification to a specific user's registered devices."""
+    import json
+    from pywebpush import webpush, WebPushException
+    from flask import current_app
+    from app.models import PushSubscription, db
+    
+    subscriptions = PushSubscription.query.filter_by(user_id=user_id).all()
+    if not subscriptions:
+        return False
+        
+    vapid_private_key = current_app.config.get('VAPID_PRIVATE_KEY')
+    vapid_claims = current_app.config.get('VAPID_CLAIMS')
+    
+    if not vapid_private_key or not vapid_claims:
+        current_app.logger.error("VAPID config missing. Cannot send push.")
+        return False
+        
+    payload = json.dumps({
+        "title": title,
+        "body": body,
+        "url": url,
+        "icon": "/static/icon-512.png"
+    })
+    
+    success_count = 0
+    for sub in subscriptions:
+        sub_info = {
+            "endpoint": sub.endpoint,
+            "keys": {
+                "p256dh": sub.p256dh,
+                "auth": sub.auth
+            }
+        }
+        try:
+            webpush(
+                subscription_info=sub_info,
+                data=payload,
+                vapid_private_key=vapid_private_key,
+                vapid_claims=vapid_claims
+            )
+            success_count += 1
+        except WebPushException as ex:
+            current_app.logger.error(f"Push failed: {repr(ex)}")
+            # If the subscription is expired/unsubscribed (410 Gone), remove it
+            if ex.response and ex.response.status_code in [404, 410]:
+                db.session.delete(sub)
+                db.session.commit()
+                
+    return success_count > 0
