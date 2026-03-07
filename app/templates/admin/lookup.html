@@ -45,7 +45,14 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <small style="opacity:.7;">Issue Code</small>
-                    <h3 class="mb-0" style="font-weight:800; letter-spacing:2px;">{{ result.issue_code }}</h3>
+                    <div class="d-flex align-items-center gap-2">
+                        <h3 class="mb-0" style="font-weight:800; letter-spacing:2px;" id="code-{{ result.issue_code }}">
+                            {{ result.issue_code }}</h3>
+                        <button type="button" class="btn btn-sm btn-light bg-white text-primary py-1 px-2 border-0"
+                            onclick="copyIssueCode('{{ result.issue_code }}')" title="Copy Code">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
                 </div>
                 <span class="badge-status badge-{{ result.status }}" style="font-size:.95rem; padding:6px 16px;">{{
                     result.status|capitalize }}</span>
@@ -158,4 +165,14 @@
     </div>
 </div>
 {% endif %}
+<script>
+    function copyIssueCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector(`button[onclick*="${code}"]`);
+            const prevIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+            setTimeout(() => { btn.innerHTML = prevIcon; }, 2000);
+        });
+    }
+</script>
 {% endblock %}

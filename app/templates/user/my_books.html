@@ -11,6 +11,7 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
+                    <th>Issue Code</th>
                     <th>Book Title</th>
                     <th>Author</th>
                     <th>Issued On</th>
@@ -24,6 +25,17 @@
                 {% for issue in issued_books %}
                 {% set info = due_date_info.get(issue.id, {}) %}
                 <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <code
+                                style="font-weight:600; font-size:.85rem; color:var(--primary); background:var(--primary-light); padding:3px 8px; border-radius:4px;"
+                                id="code-{{ issue.issue_code }}">{{ issue.issue_code }}</code>
+                            <button type="button" class="btn btn-sm btn-light py-0 px-2 text-muted"
+                                onclick="copyIssueCode('{{ issue.issue_code }}')" title="Copy Code">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </td>
                     <td><strong>{{ issue.book.title }}</strong></td>
                     <td>{{ issue.book.author }}</td>
                     <td>{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
@@ -59,4 +71,15 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+    function copyIssueCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector(`button[onclick*="${code}"]`);
+            const prevIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+            setTimeout(() => { btn.innerHTML = prevIcon; }, 2000);
+        });
+    }
+</script>
 {% endblock %}
