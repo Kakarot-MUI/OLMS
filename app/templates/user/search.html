@@ -5,6 +5,25 @@
 {% block content %}
 <h1 class="h3 fw-700 mb-4">Browse Books</h1>
 
+<style>
+    .glow-switch .form-check-input:checked {
+        background-color: var(--primary) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 12px var(--primary) !important;
+    }
+
+    .disabled-book {
+        opacity: 0.55;
+        filter: grayscale(60%);
+        transition: all 0.3s ease;
+    }
+
+    .disabled-book:hover {
+        opacity: 0.8;
+        filter: grayscale(20%);
+    }
+</style>
+
 {# ── Search Bar ──────────────────────────────────────────────── #}
 <div class="search-bar">
     <form method="GET" action="{{ url_for('user.search') }}" class="row g-2 align-items-end">
@@ -30,56 +49,75 @@
                 <i class="bi bi-search me-1"></i>Search
             </button>
         </div>
+        <div class="col-12 mt-3 d-flex justify-content-end align-items-center gap-2">
+            <label class="fw-bold" style="color:var(--text-secondary); cursor:pointer;" for="available-toggle">Available
+                Only</label>
+            <div class="form-check form-switch glow-switch" style="margin:0; padding-left:2.5em;">
+                <input class="form-check-input" type="checkbox" role="switch" id="available-toggle"
+                    style="height:1.25rem; width:2.5rem; cursor:pointer;" onchange="toggleAvailable()">
+            </div>
+        </div>
     </form>
 </div>
 
 {# ── Results ─────────────────────────────────────────────────── #}
 {% if pagination.items %}
 <p class="text-muted mb-3">{{ pagination.total }} books found</p>
-<div class="row g-4">
+<div class="row g-4" id="book-grid">
     {% for book in pagination.items %}
-    <div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="col-sm-6 col-lg-4 col-xl-3 book-item" data-available="{{ 'true' if book.is_available else 'false' }}">
         <a href="{{ url_for('user.book_detail', book_id=book.id) }}" style="text-decoration:none; color:inherit;">
-            <div class="book-card">
-                {% set cat_class = 'fiction' if book.category|lower in ['fiction','novel','literature'] else
-                'science' if book.category|lower in ['science','biology','physics','chemistry'] else
-                'history' if book.category|lower in ['history','biography'] else
-                'technology' if book.category|lower in ['technology','programming','computing','computer science'] else
-                'default' %}
-                <div class="book-cover {{ cat_class }}">
-                    <i class="bi bi-journal-bookmark"></i>
-                </div>
-                <div class="book-body">
-                    <div class="book-title">{{ book.title }}</div>
-                    <div class="book-author"><i class="bi bi-person me-1"></i>{{ book.author }}</div>
-                    <div class="mb-2 d-flex align-items-center">
-                        <span class="text-warning" style="font-size: 0.8rem;">
-                            {% set rating = book.average_rating %}
-                            {% for i in range(1, 6) %}
-                            {% if rating >= i %}
-                            <i class="bi bi-star-fill"></i>
-                            {% elif rating >= i - 0.5 %}
-                            <i class="bi bi-star-half"></i>
-                            {% else %}
-                            <i class="bi bi-star"></i>
-                            {% endif %}
-                            {% endfor %}
-                            <span class="text-muted ms-1" style="font-size: 0.7rem;">({{ rating if rating > 0 else '0'
-                                }})</span>
-                        </span>
-                    </div>
-                    <span class="book-category">{{ book.category }}</span>
-                    <div class="book-footer">
-                        {% if book.is_available %}
-                        <span class="availability available"><i class="bi bi-check-circle me-1"></i>Available</span>
-                        {% else %}
-                        <span class="availability unavailable"><i class="bi bi-x-circle me-1"></i>Unavailable</span>
+            <div class="book-card {{ 'disabled-book' if not book.is_available else '' }}" style="position:relative;">
+                {% if not book.is_available and book.id in earliest_available %}
+                <div
+                    style="position:absolute; top:-10px; right:-10px; background:linear-gradient(135deg, #ff9d2f, #ff6126); color:white; padding:4px 12px; border-radius:12px; font-size:.75rem; font-weight:800; z-index:10; box-shadow:0 4px 15px rgba(255,100,30,0.4); border:1px solid rgba(255,255,255,0.2); letter-spacing:0.5px;">
+                    {% set days = earliest_available[book.id] %}
+                    {% if days < 0 %} Overdue {% elif days==0 %} Due Today {% elif days==1 %} Available Tomorrow {% else
+                        %} Available in {{ days }} Days {% endif %} </div>
                         {% endif %}
-                        <span class="text-muted" style="font-size:.8rem;">{{ book.available_copies }}/{{
-                            book.total_copies }}</span>
-                    </div>
+                        {% set cat_class = 'fiction' if book.category|lower in ['fiction','novel','literature'] else
+                        'science' if book.category|lower in ['science','biology','physics','chemistry'] else
+                        'history' if book.category|lower in ['history','biography'] else
+                        'technology' if book.category|lower in ['technology','programming','computing','computer
+                        science'] else
+                        'default' %}
+                        <div class="book-cover {{ cat_class }}">
+                            <i class="bi bi-journal-bookmark"></i>
+                        </div>
+                        <div class="book-body">
+                            <div class="book-title">{{ book.title }}</div>
+                            <div class="book-author"><i class="bi bi-person me-1"></i>{{ book.author }}</div>
+                            <div class="mb-2 d-flex align-items-center">
+                                <span class="text-warning" style="font-size: 0.8rem;">
+                                    {% set rating = book.average_rating %}
+                                    {% for i in range(1, 6) %}
+                                    {% if rating >= i %}
+                                    <i class="bi bi-star-fill"></i>
+                                    {% elif rating >= i - 0.5 %}
+                                    <i class="bi bi-star-half"></i>
+                                    {% else %}
+                                    <i class="bi bi-star"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted ms-1" style="font-size: 0.7rem;">({{ rating if rating > 0
+                                        else '0'
+                                        }})</span>
+                                </span>
+                            </div>
+                            <span class="book-category">{{ book.category }}</span>
+                            <div class="book-footer">
+                                {% if book.is_available %}
+                                <span class="availability available"><i
+                                        class="bi bi-check-circle me-1"></i>Available</span>
+                                {% else %}
+                                <span class="availability unavailable"><i
+                                        class="bi bi-x-circle me-1"></i>Unavailable</span>
+                                {% endif %}
+                                <span class="text-muted" style="font-size:.8rem;">{{ book.available_copies }}/{{
+                                    book.total_copies }}</span>
+                            </div>
+                        </div>
                 </div>
-            </div>
         </a>
     </div>
     {% endfor %}
@@ -127,5 +165,31 @@
         </div>
     </div>
 </div>
+</div>
 {% endif %}
+
+<script>
+    function toggleAvailable() {
+        const isChecked = document.getElementById('available-toggle').checked;
+        const items = document.querySelectorAll('.book-item');
+        items.forEach(item => {
+            if (isChecked && item.dataset.available === 'false') {
+                item.style.display = 'none';
+            } else {
+                item.style.display = 'block';
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const toggle = document.getElementById('available-toggle');
+        const isChecked = sessionStorage.getItem('availableOnly') === 'true';
+        toggle.checked = isChecked;
+        if (isChecked) toggleAvailable();
+
+        toggle.addEventListener('change', (e) => {
+            sessionStorage.setItem('availableOnly', e.target.checked);
+        });
+    });
+</script>
 {% endblock %}

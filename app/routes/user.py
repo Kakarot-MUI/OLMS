@@ -60,12 +60,22 @@ def search():
         per_page=per_page,
     )
 
+    from datetime import datetime
+    earliest_available = {}
+    for book in pagination.items:
+        if not book.is_available:
+            issue = IssuedBook.query.filter_by(book_id=book.id, status='issued').order_by(IssuedBook.due_date.asc()).first()
+            if issue:
+                days_left = (issue.due_date.date() - datetime.utcnow().date()).days
+                earliest_available[book.id] = days_left
+
     return render_template(
         'user/search.html',
         pagination=pagination,
         categories=categories,
         current_query=query,
         current_category=category,
+        earliest_available=earliest_available,
     )
 
 
