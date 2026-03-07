@@ -94,6 +94,20 @@ def create_app(config_name='development'):
         app.logger.info(f'Database URI: {app.config["SQLALCHEMY_DATABASE_URI"][:30]}...')
         db.create_all()
         _create_default_admin()
+        
+        # Auto-migrate new columns for existing production databases
+        from sqlalchemy import text
+        try:
+            db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        try:
+            db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     return app
 
