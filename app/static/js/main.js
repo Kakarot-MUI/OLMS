@@ -146,14 +146,14 @@ async function subscribeUserToPush() {
     }
 
     try {
-        const registration = await navigator.serviceWorker.ready;
-
-        // Ensure user granted permission
+        // IMPORTANT: Request permission FIRST to preserve the user gesture context
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
             console.log('Permission not granted for Notification');
             return;
         }
+
+        const registration = await navigator.serviceWorker.ready;
 
         // Fetch the VAPID public key from our backend
         const response = await fetch('/api/push/vapid_public_key');
