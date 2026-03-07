@@ -138,63 +138,6 @@
                                     value="">
                                 <input type="hidden" name="fine_amount" id="fine-amount-{{ issue.id }}" value="">
                             </form>
-                            <script>
-                                document.querySelectorAll('[data-confirm]').forEach(form => {
-                                    form.onsubmit = function (e) {
-                                        if (!confirm(this.dataset.confirm)) {
-                                            e.preventDefault();
-                                        }
-                                    }
-                                });
-
-                                function promptFine(issueId, type, bookTitle) {
-                                    const amount = window.prompt(`Marking '${bookTitle}' as ${type.toUpperCase()}.\n\nEnter the fine amount to charge the student (e.g. 500):`, "500");
-                                    if (amount !== null && !isNaN(parseFloat(amount))) {
-                                        document.getElementById(`resolution-type-${issueId}`).value = type;
-                                        document.getElementById(`fine-amount-${issueId}`).value = parseFloat(amount);
-                                        document.getElementById(`resolve-form-${issueId}`).submit();
-                                    } else if (amount !== null) {
-                                        alert("Please enter a valid numeric fine amount.");
-                                    }
-                                }
-
-                                function copyIssueCode(code, btn) {
-                                    const successHtml = '<i class="bi bi-check2 text-success"></i>';
-                                    const failHtml = '<i class="bi bi-x-circle text-danger"></i>';
-                                    const prevHtml = btn.innerHTML;
-
-                                    if (navigator.clipboard && window.isSecureContext) {
-                                        navigator.clipboard.writeText(code).then(() => {
-                                            btn.innerHTML = successHtml;
-                                            setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
-                                        }).catch(err => {
-                                            fallbackCopyTextToClipboard(code, btn, successHtml, failHtml, prevHtml);
-                                        });
-                                    } else {
-                                        fallbackCopyTextToClipboard(code, btn, successHtml, failHtml, prevHtml);
-                                    }
-                                }
-
-                                function fallbackCopyTextToClipboard(text, btn, successHtml, failHtml, prevHtml) {
-                                    var textArea = document.createElement("textarea");
-                                    textArea.value = text;
-                                    textArea.style.position = "fixed";
-                                    textArea.style.left = "-999999px";
-                                    textArea.style.top = "-999999px";
-                                    document.body.appendChild(textArea);
-                                    textArea.focus();
-                                    textArea.select();
-                                    try {
-                                        var successful = document.execCommand('copy');
-                                        btn.innerHTML = successful ? successHtml : failHtml;
-                                        setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
-                                    } catch (err) {
-                                        btn.innerHTML = failHtml;
-                                        setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
-                                    }
-                                    document.body.removeChild(textArea);
-                                }
-                            </script>
                         </div>
                         {% else %}
                         <span class="text-muted" style="font-size:.8rem;">Done</span>
@@ -256,4 +199,68 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('[data-confirm]').forEach(form => {
+            // Only attach once by checking a custom property
+            if (!form.dataset.confirmAttached) {
+                form.onsubmit = function (e) {
+                    if (!confirm(this.dataset.confirm)) {
+                        e.preventDefault();
+                    }
+                }
+                form.dataset.confirmAttached = 'true';
+            }
+        });
+    });
+
+    function promptFine(issueId, type, bookTitle) {
+        const amount = window.prompt(`Marking '${bookTitle}' as ${type.toUpperCase()}.\n\nEnter the fine amount to charge the student (e.g. 500):`, "500");
+        if (amount !== null && !isNaN(parseFloat(amount))) {
+            document.getElementById(`resolution-type-${issueId}`).value = type;
+            document.getElementById(`fine-amount-${issueId}`).value = parseFloat(amount);
+            document.getElementById(`resolve-form-${issueId}`).submit();
+        } else if (amount !== null) {
+            alert("Please enter a valid numeric fine amount.");
+        }
+    }
+
+    function copyIssueCode(code, btn) {
+        const successHtml = '<i class="bi bi-check2 text-success"></i>';
+        const failHtml = '<i class="bi bi-x-circle text-danger"></i>';
+        const prevHtml = btn.innerHTML;
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(() => {
+                btn.innerHTML = successHtml;
+                setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
+            }).catch(err => {
+                fallbackCopyTextToClipboard(code, btn, successHtml, failHtml, prevHtml);
+            });
+        } else {
+            fallbackCopyTextToClipboard(code, btn, successHtml, failHtml, prevHtml);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text, btn, successHtml, failHtml, prevHtml) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            var successful = document.execCommand('copy');
+            btn.innerHTML = successful ? successHtml : failHtml;
+            setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
+        } catch (err) {
+            btn.innerHTML = failHtml;
+            setTimeout(() => { btn.innerHTML = prevHtml; }, 2000);
+        }
+        document.body.removeChild(textArea);
+    }
+</script>
 {% endblock %}
