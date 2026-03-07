@@ -115,6 +115,15 @@ document.addEventListener('DOMContentLoaded', function () {
    Handles user permission, subscription generation, and backend sync.
    ═══════════════════════════════════════════════════════════════════ */
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(function (reg) {
+            console.log('Service Worker Registered on scope:', reg.scope);
+        }).catch(function (err) {
+            console.error('Service Worker registration failed:', err);
+        });
+}
+
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)

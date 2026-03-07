@@ -84,6 +84,11 @@ def create_app(config_name='development'):
             due_books_count=due_books_count
         )
 
+    # Serve Service Worker at root level for Web Push scope
+    @app.route('/sw.js')
+    def sw():
+        return app.send_static_file('sw.js')
+
     # Create database tables if they don't exist (needed for Render/production)
     with app.app_context():
         app.logger.info(f'Database URI: {app.config["SQLALCHEMY_DATABASE_URI"][:30]}...')
