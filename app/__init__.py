@@ -95,7 +95,7 @@ def create_app(config_name='development'):
         db.create_all()
         _create_default_admin()
         
-        # Auto-migrate new columns for existing production databases
+        # Auto-migrate new columns for existing production databases (PostgreSQL/MySQL/SQLite compat)
         from sqlalchemy import text
         try:
             db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0"))
@@ -104,6 +104,7 @@ def create_app(config_name='development'):
             db.session.rollback()
 
         try:
+            # PostgreSQL requires distinct boolean types
             db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE"))
             db.session.commit()
         except Exception:
