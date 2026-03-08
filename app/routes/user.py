@@ -22,64 +22,25 @@ def before_request():
 @active_required
 def dashboard():
     """User dashboard showing their issued books."""
-    try:
-        issue_service.update_overdue_books()
-        my_books = issue_service.get_user_issued_books(current_user.id)
-        active_books = [b for b in my_books if b.status in ('issued', 'overdue')]
-        returned_books = [b for b in my_books if b.status == 'returned']
+    issue_service.update_overdue_books()
+    my_books = issue_service.get_user_issued_books(current_user.id)
+    active_books = [b for b in my_books if b.status in ('issued', 'overdue')]
+    returned_books = [b for b in my_books if b.status == 'returned']
 
-        # Build due date info for active books
-        due_date_info = {}
-        for book in active_books:
-            due_date_info[book.id] = {
-                'status': issue_service.get_due_date_status(book.due_date),
-                'days': issue_service.get_days_remaining(book.due_date),
-            }
+    # Build due date info for active books
+    due_date_info = {}
+    for book in active_books:
+        due_date_info[book.id] = {
+            'status': issue_service.get_due_date_status(book.due_date),
+            'days': issue_service.get_days_remaining(book.due_date),
+        }
 
-        # Fetch recommendations
-        recommendations = book_service.get_personalized_recommendations(current_user.id)
-        
-        # Prepare recommendations with covers
-        final_recs = []
-        for book in recommendations:
-            final_recs.append({
-                'book': book,
-                'cover_url': book_service.get_book_cover_url(book.title, book.author)
-            })
-
-        return render_template(
-            'user/dashboard.html',
-            active_books=active_books,
-            returned_books=returned_books,
-            due_date_info=due_date_info,
-            recommendations=final_recs
-        )
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        # Only flash detailed error for admins or for debugging purposes
-        if current_user.is_admin:
-            flash(f"Dashboard Recommendation Error: {str(e)}", "warning")
-        else:
-            flash("Some dashboard features are currently simplified.", "info")
-            
-        print(f"DASHBOARD CRASH: {error_details}")
-        # Fallback to a simpler dashboard if recommendations fail
-        issue_service.update_overdue_books()
-        my_books = issue_service.get_user_issued_books(current_user.id)
-        active_books = [b for b in my_books if b.status in ('issued', 'overdue')]
-        returned_books = [b for b in my_books if b.status == 'returned']
-        due_date_info = {}
-        for book in active_books:
-            due_date_info[book.id] = {
-                'status': issue_service.get_due_date_status(book.due_date),
-                'days': issue_service.get_days_remaining(book.due_date),
-            }
-        return render_template('user/dashboard.html', 
-                                active_books=active_books, 
-                                returned_books=returned_books, 
-                                due_date_info=due_date_info,
-                                recommendations=[])
+    return render_template(
+        'user/dashboard.html',
+        active_books=active_books,
+        returned_books=returned_books,
+        due_date_info=due_date_info
+    )
 
 
 @user_bp.route('/search')
