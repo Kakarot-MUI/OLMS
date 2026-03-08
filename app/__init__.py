@@ -130,6 +130,16 @@ def create_app(config_name='development'):
                     cursor.execute("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE;")
                     app.logger.info("Added fine_paid column to PostgreSQL.")
                     
+                # Check if notified_due_soon exists
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='issued_books' AND column_name='notified_due_soon';
+                """)
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE issued_books ADD COLUMN notified_due_soon BOOLEAN NOT NULL DEFAULT FALSE;")
+                    app.logger.info("Added notified_due_soon column to PostgreSQL.")
+                    
                 conn.close()
             except Exception as e:
                 app.logger.error(f"PostgreSQL Auto-Migration Error: {e}")
@@ -143,6 +153,12 @@ def create_app(config_name='development'):
 
             try:
                 db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                
+            try:
+                db.session.execute(text("ALTER TABLE issued_books ADD COLUMN notified_due_soon BOOLEAN NOT NULL DEFAULT FALSE"))
                 db.session.commit()
             except Exception:
                 db.session.rollback()

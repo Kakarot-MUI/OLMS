@@ -81,8 +81,10 @@ def return_book(issue_id):
 
 
 def update_overdue_books():
-    """Mark all overdue books that have passed their due date."""
+    """Mark all overdue books that have passed their due date, and send Due Soon notifications."""
     now = datetime.utcnow()
+    
+    # 1. Handle strictly overdue books
     overdue_records = IssuedBook.query.filter(
         IssuedBook.status == 'issued',
         IssuedBook.due_date < now,
@@ -91,7 +93,29 @@ def update_overdue_books():
     for record in overdue_records:
         record.status = 'overdue'
 
-    if overdue_records:
+    # 2. Handle books due in exactly 2 days or less (and not already notified)
+    warning_deadline = now + timedelta(days=2)
+    due_soon_records = IssuedBook.query.filter(
+        IssuedBook.status == 'issued',
+        IssuedBook.due_date <= warning_deadline,
+        IssuedBook.due_date >= now,
+        IssuedBook.notified_due_soon == False
+    ).all()
+    
+    for record in due_soon_records:
+        days_left = (record.due_date - now).days
+        # Time calculations (e.g. 1 day left vs tomorrow)
+        time_text = f"in {days_left} days" if days_left > 1 else "tomorrow" if days_left == 1 else "today"
+        
+        send_push_notification(
+            user_id=record.user_id,
+            title="⏳ Book Due Soon!",
+            body=f"Reminder: Please return '{record.book.title}' {time_text} to avoid fines.",
+            url="/user/my-books"
+        )
+        record.notified_due_soon = True
+
+    if overdue_records or due_soon_records:
         db.session.commit()
 
     return len(overdue_records)

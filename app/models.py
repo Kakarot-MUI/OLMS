@@ -116,6 +116,7 @@ class IssuedBook(db.Model):
     status = db.Column(db.String(20), nullable=False, default='issued', index=True)
     fine_amount = db.Column(db.Float, nullable=False, default=0.0)
     fine_paid = db.Column(db.Boolean, nullable=False, default=False)
+    notified_due_soon = db.Column(db.Boolean, nullable=False, default=False)
 
     @staticmethod
     def generate_issue_code():
