@@ -57,7 +57,12 @@ def dashboard():
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        flash(f"Dashboard Error: {str(e)}", "danger")
+        # Only flash detailed error for admins or for debugging purposes
+        if current_user.is_admin:
+            flash(f"Dashboard Recommendation Error: {str(e)}", "warning")
+        else:
+            flash("Some dashboard features are currently simplified.", "info")
+            
         print(f"DASHBOARD CRASH: {error_details}")
         # Fallback to a simpler dashboard if recommendations fail
         issue_service.update_overdue_books()

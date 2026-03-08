@@ -177,27 +177,47 @@ def get_personalized_recommendations(user_id, limit=10):
     
     # helper to get books with ratings without complex group by
     def get_books_query(base_query, current_borrowed, num_needed):
+        from app.models import Review, Book
         # We join on a subquery of average ratings
         ratings_sub = db.session.query(
             Review.book_id, 
             func.avg(Review.rating).label('avg_rating')
         ).group_by(Review.book_id).subquery()
         
-        q = base_query.outerjoin(ratings_sub, Book.id == ratings_sub.c.book_id)
+        # Explicitly query only the Book model to avoid receiving tuples
+        q = db.session.query(Book).select_from(Book)
+        
+        # Apply filters from base_query (if it has any)
+        if hasattr(base_query, '_criterion') and base_query._criterion is not None:
+            q = q.filter(base_query._criterion)
+            
+        q = q.outerjoin(ratings_sub, Book.id == ratings_sub.c.book_id)
+        
         if current_borrowed:
             q = q.filter(~Book.id.in_(current_borrowed))
             
-        return q.order_by(
+        results = q.order_by(
             ratings_sub.c.avg_rating.desc().nullslast(),
             Book.total_copies.desc()
         ).limit(num_needed).all()
+        
+        # Ensure we return objects, even if SQLAlchemy returns Row objects
+        final_list = []
+        for r in results:
+            if isinstance(r, Book):
+                final_list.append(r)
+            elif hasattr(r, 'Book'): # Case for tuple result (Book, avg_rating)
+                final_list.append(r.Book)
+            elif isinstance(r, (list, tuple)) and len(r) > 0:
+                final_list.append(r[0])
+        return final_list
 
     # 2. Get recommendations from favorite categories
     if top_cats:
         cat_recs = get_books_query(Book.query.filter(Book.category.in_(top_cats)), borrowed_ids, limit)
         recommendations.extend(cat_recs)
         
-    # 3. Fallback: Trending books
+    # 3. Fallback: Trending books (anything the user hasn't read)
     if len(recommendations) < limit:
         needed = limit - len(recommendations)
         exclude_ids = borrowed_ids + [b.id for b in recommendations]
