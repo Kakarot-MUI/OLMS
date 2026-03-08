@@ -17,7 +17,7 @@
 <div class="card card-olms border-0 shadow-sm mb-4">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th class="ps-4">Book Title</th>
                     <th>Author</th>
@@ -29,7 +29,7 @@
                 {% for req in pagination.items %}
                 <tr>
                     <td class="ps-4">
-                        <strong class="text-dark">{{ req.title }}</strong>
+                        <strong class="fw-bold">{{ req.title }}</strong>
                         {% if req.reason %}
                         <div class="small text-muted text-truncate mt-1" style="max-width: 300px;">
                             <i class="bi bi-chat-quote me-1"></i> "{{ req.reason }}"
