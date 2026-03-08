@@ -159,9 +159,10 @@ def get_book_average_rating(book_id):
 def get_personalized_recommendations(user_id, limit=10):
     """
     Generate personalized book recommendations for a user based on their 
-    borrowing history and saved books.
+    borrowing history and saved books, prioritizing highly-rated books.
     """
-    from app.models import IssuedBook, SavedBook, Book
+    from app.models import IssuedBook, SavedBook, Book, Review
+    from sqlalchemy import func
     import collections
 
     # 1. Get categories of books the user has interacted with
@@ -180,21 +181,29 @@ def get_personalized_recommendations(user_id, limit=10):
     recommendations = []
     
     if top_categories:
-        # Find books in their favorite categories they haven't read
-        fav_cat_recs = Book.query.filter(
+        # Find books in their favorite categories they haven't read, sorted by rating
+        fav_cat_recs = db.session.query(Book).outerjoin(Review).filter(
             Book.category.in_(top_categories),
             ~Book.id.in_(borrowed_ids)
+        ).group_by(Book.id).order_by(
+            func.avg(Review.rating).desc().nullslast(),
+            Book.total_copies.desc()
         ).limit(limit).all()
+        
         recommendations.extend(fav_cat_recs)
         
-    # 4. Fallback/Trending: Fill remaining slots with trending books (most copies)
+    # 4. Fallback/Trending: Fill remaining slots with the HIGHEST RATED books overall
     if len(recommendations) < limit:
         needed = limit - len(recommendations)
         existing_ids = [b.id for b in recommendations] + borrowed_ids
         
-        trending = Book.query.filter(
+        # Get books with highest average rating overall
+        trending = db.session.query(Book).outerjoin(Review).filter(
             ~Book.id.in_(existing_ids)
-        ).order_by(Book.total_copies.desc()).limit(needed).all()
+        ).group_by(Book.id).order_by(
+            func.avg(Review.rating).desc().nullslast(),
+            Book.total_copies.desc()
+        ).limit(needed).all()
         
         recommendations.extend(trending)
         
