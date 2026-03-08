@@ -43,7 +43,16 @@
                 {% for user in pagination.items %}
                 <tr>
                     <td>{{ user.id }}</td>
-                    <td><strong>{{ user.name }}</strong></td>
+                    <td>
+                        <strong>{{ user.name }}</strong>
+                        {% if user.is_flagged %}
+                        <span class="ms-1 text-danger" title="Unpaid Fines: ₹{{ user.total_unpaid_fines }}">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle"
+                            style="font-size: 0.65rem;">Flagged</span>
+                        {% endif %}
+                    </td>
                     <td>{{ user.email }}</td>
                     <td>
                         {% if user.status == 'active' %}

@@ -18,7 +18,7 @@ def issue_book(user_id, book_id, days=None):
         
     # Check if user is flagged for unpaid fines
     if user.is_flagged:
-        return False, f"Account locked due to unpaid fines of ₹{user.total_unpaid_fines}. Please clear debts before borrowing."
+        raise ValueError(f"Account locked due to unpaid fines of ₹{user.total_unpaid_fines}. Please clear debts before borrowing.")
 
     if book.available_copies <= 0:
         return False, "No copies of this book are currently available."
