@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.decorators import active_required
 from app.services import book_service, issue_service
-from app.models import IssuedBook, User, Message
+from app.models import IssuedBook, User, Message, BookRequest
 from app.forms import StudentProfileForm
 from flask import current_app
 from app import db, bcrypt
@@ -282,3 +282,57 @@ def chat():
     ).order_by(Message.created_at.asc()).all()
 
     return render_template('user/chat.html', messages=messages, admin=admin)
+
+
+# ── Book Requests ────────────────────────────────────────────────────────
+
+@user_bp.route('/request-book', methods=['GET', 'POST'])
+@active_required
+def request_book():
+    """Form for students to request new books."""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        author = request.form.get('author', '').strip()
+        reason = request.form.get('reason', '').strip()
+        
+        if not title or not author:
+            flash('Title and Author are required fields.', 'danger')
+            return redirect(url_for('user.request_book'))
+            
+        new_request = BookRequest(
+            user_id=current_user.id,
+            title=title,
+            author=author,
+            reason=reason
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        
+        # Notify Admin
+        from app.services.issue_service import send_push_notification
+        admin = User.query.filter_by(role='admin').first()
+        if admin:
+            send_push_notification(
+                user_id=admin.id,
+                title="New Book Request",
+                body=f"{current_user.name} requested '{title}' by {author}.",
+                url="/admin/book-requests"
+            )
+            
+        flash(f'Your request for "{title}" has been submitted successfully!', 'success')
+        return redirect(url_for('user.my_requests'))
+        
+    return render_template('user/request_form.html')
+
+
+@user_bp.route('/my-requests')
+@active_required
+def my_requests():
+    """View status of student's book requests."""
+    page = request.args.get('page', 1, type=int)
+    pagination = BookRequest.query.filter_by(user_id=current_user.id).order_by(
+        BookRequest.created_at.desc()
+    ).paginate(page=page, per_page=10, error_out=False)
+    
+    return render_template('user/my_requests.html', pagination=pagination)
+

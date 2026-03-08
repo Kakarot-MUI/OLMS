@@ -32,6 +32,7 @@ class User(UserMixin, db.Model):
     issued_books = db.relationship('IssuedBook', backref='user', lazy='dynamic')
     saved_books = db.relationship('SavedBook', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     reviews = db.relationship('Review', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    book_requests = db.relationship('BookRequest', backref='requester', lazy='dynamic', cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -201,3 +202,14 @@ class PushSubscription(db.Model):
     def __repr__(self):
         return f'<PushSubscription user={self.user_id}>'
 
+
+class BookRequest(db.Model):
+    """Formal requests made by students for the library to purchase new books."""
+    __tablename__ = 'book_requests'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    author = db.Column(db.String(200), nullable=False)
+    reason = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default='pending') # pending, approved, rejected, purchased
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

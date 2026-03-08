@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from app.decorators import admin_required
 from app.forms import BookForm, IssueBookForm, ReturnBookForm, EditDueDateForm, AdminProfileForm
 from datetime import datetime
-from app.models import User, Book, IssuedBook, Message
+from app.models import User, Book, IssuedBook, Message, BookRequest
 from app.services import book_service, issue_service
 from app import db, bcrypt
 
@@ -595,3 +595,81 @@ def chat_with_student(student_id):
     ).order_by(Message.created_at.asc()).all()
 
     return render_template('admin/chat.html', student=student, messages=messages)
+
+
+# ── Student Book Requests ────────────────────────────────────────────────
+
+@admin_bp.route('/book-requests')
+@admin_required
+def book_requests():
+    """View all book requests from students."""
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', '')
+    
+    query = BookRequest.query.join(User).order_by(BookRequest.created_at.desc())
+    if status_filter:
+        query = query.filter(BookRequest.status == status_filter)
+        
+    pagination = query.paginate(page=page, per_page=15, error_out=False)
+    return render_template('admin/book_requests.html', pagination=pagination, current_status=status_filter)
+
+
+@admin_bp.route('/book-requests/<int:req_id>/approve', methods=['POST'])
+@admin_required
+def approve_request(req_id):
+    """Mark a book request as approved for purchase."""
+    req = BookRequest.query.get_or_404(req_id)
+    req.status = 'approved'
+    db.session.commit()
+    
+    from app.services.issue_service import send_push_notification
+    send_push_notification(
+        user_id=req.user_id,
+        title="Book Request Approved",
+        body=f"Your request for '{req.title}' has been approved! We are buying it.",
+        url="/user/my-requests"
+    )
+    
+    flash(f"Approved request for '{req.title}'.", 'success')
+    return redirect(url_for('admin.book_requests'))
+
+
+@admin_bp.route('/book-requests/<int:req_id>/reject', methods=['POST'])
+@admin_required
+def reject_request(req_id):
+    """Mark a book request as rejected."""
+    req = BookRequest.query.get_or_404(req_id)
+    req.status = 'rejected'
+    db.session.commit()
+    
+    from app.services.issue_service import send_push_notification
+    send_push_notification(
+        user_id=req.user_id,
+        title="Book Request Update",
+        body=f"Unfortunately, your request for '{req.title}' was not approved at this time.",
+        url="/user/my-requests"
+    )
+    
+    flash(f"Rejected request for '{req.title}'.", 'info')
+    return redirect(url_for('admin.book_requests'))
+
+
+@admin_bp.route('/book-requests/<int:req_id>/purchased', methods=['POST'])
+@admin_required
+def purchase_request(req_id):
+    """Mark a book request as formally purchased and available."""
+    req = BookRequest.query.get_or_404(req_id)
+    req.status = 'purchased'
+    db.session.commit()
+    
+    from app.services.issue_service import send_push_notification
+    send_push_notification(
+        user_id=req.user_id,
+        title="Your Book Arrived!",
+        body=f"Great news! '{req.title}' has arrived at the library and is ready for checkout.",
+        url="/user/my-requests"
+    )
+    
+    flash(f"Marked '{req.title}' as purchased. The student has been notified!", 'success')
+    return redirect(url_for('admin.book_requests'))
+

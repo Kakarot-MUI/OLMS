@@ -1,0 +1,109 @@
+{% extends "user/layout.html" %}
+
+{% block title %}My Book Requests{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-700 mb-1">My Book Requests</h1>
+        <p class="text-muted mb-0">Track the status of books you've asked the library to purchase.</p>
+    </div>
+    <a href="{{ url_for('user.request_book') }}" class="btn btn-primary fw-bold" style="letter-spacing: 0.5px;">
+        <i class="bi bi-plus-lg me-1"></i> New Request
+    </a>
+</div>
+
+{% if pagination.items %}
+<div class="card card-olms border-0 shadow-sm mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Book Title</th>
+                    <th>Author</th>
+                    <th>Requested On</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pagination.items %}
+                <tr>
+                    <td class="ps-4">
+                        <strong class="text-dark">{{ req.title }}</strong>
+                        {% if req.reason %}
+                        <div class="small text-muted text-truncate mt-1" style="max-width: 300px;">
+                            <i class="bi bi-chat-quote me-1"></i> "{{ req.reason }}"
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ req.author }}</td>
+                    <td>{{ req.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                        <span class="badge rounded-pill bg-warning text-dark px-3 py-2"><i
+                                class="bi bi-hourglass-split me-1"></i> Pending</span>
+                        {% elif req.status == 'approved' %}
+                        <span class="badge rounded-pill bg-info text-dark px-3 py-2"><i
+                                class="bi bi-check-circle me-1"></i> Under Review</span>
+                        {% elif req.status == 'purchased' %}
+                        <span class="badge rounded-pill bg-success px-3 py-2"><i class="bi bi-box2-heart me-1"></i>
+                            Available Now!</span>
+                        {% elif req.status == 'rejected' %}
+                        <span class="badge rounded-pill bg-secondary px-3 py-2"><i class="bi bi-x-circle me-1"></i> Not
+                            Approved</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('user.my_requests', page=pagination.prev_num) }}"><i
+                    class="bi bi-chevron-left"></i> Previous</a>
+        </li>
+        {% endif %}
+
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {{ 'active' if p == pagination.page }}">
+            <a class="page-link" href="{{ url_for('user.my_requests', page=p) }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('user.my_requests', page=pagination.next_num) }}">Next <i
+                    class="bi bi-chevron-right"></i></a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card card-olms border-0 shadow-sm text-center p-5">
+    <div class="card-body py-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-4"
+            style="width: 80px; height: 80px;">
+            <i class="bi bi-lightbulb text-primary" style="font-size: 2.5rem;"></i>
+        </div>
+        <h3 class="h4 fw-bold mb-3">No Requests Yet</h3>
+        <p class="text-muted mb-4 max-w-md mx-auto">Can't find a book you need for your studies? Submit a request and
+            we'll review it for the library's next purchase order.</p>
+        <a href="{{ url_for('user.request_book') }}" class="btn btn-primary btn-lg px-4 fw-bold">
+            Suggest a Book
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

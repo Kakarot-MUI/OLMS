@@ -140,6 +140,9 @@
                     <a class="nav-link" href="{{ url_for('user.saved_books') }}">Saved</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user.my_requests') }}">Requests</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('user.history') }}">History</a>
                 </li>
             </ul>
@@ -185,6 +188,10 @@
                     <li class="nav-item">
                         <a class="nav-link py-2" href="{{ url_for('user.saved_books') }}"><i
                                 class="bi bi-heart me-3"></i>Saved Books</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2" href="{{ url_for('user.my_requests') }}"><i
+                                class="bi bi-journal-plus me-3"></i>Book Requests</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-2" href="{{ url_for('user.history') }}"><i
