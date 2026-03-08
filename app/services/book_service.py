@@ -178,6 +178,7 @@ def get_personalized_recommendations(user_id, limit=10):
     top_categories = [cat for cat, count in cat_counts.most_common(2)]
     
     recommendations = []
+    print(f"DEBUG: Getting recs for user {user_id}. top_cats={top_categories}, borrowed={borrowed_ids}")
     
     if top_categories:
         # Find books in their favorite categories they haven't read, sorted by rating
