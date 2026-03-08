@@ -71,6 +71,54 @@
 </div>
 {% endif %}
 
+
+{# ── Recommendations Carousel ────────────────────────────────── #}
+{% if recommendations %}
+<div class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-700 mb-0 d-flex align-items-center">
+            <i class="bi bi-stars text-warning me-2"></i>Recommended For You
+        </h5>
+        <a href="{{ url_for('user.search') }}" class="text-decoration-none"
+            style="font-size: 0.85rem; font-weight: 600;">
+            View All <i class="bi bi-chevron-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="recommendations-container">
+        <div class="recommendations-carousel">
+            {% for rec in recommendations %}
+            <a href="{{ url_for('book_detail', book_id=rec.book.id) }}" class="carousel-item-olms">
+                <div class="carousel-card">
+                    <div class="carousel-cover-wrapper">
+                        <img src="{{ rec.cover_url }}" alt="{{ rec.book.title }}" class="carousel-cover"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+                        {# Smart Fallback #}
+                        <div class="carousel-cover-fallback"
+                            style="display:none; background: linear-gradient(135deg, var(--primary), var(--accent));">
+                            <span class="fallback-title">{{ rec.book.title }}</span>
+                        </div>
+
+                        {# Badge for Rating #}
+                        {% if rec.book.average_rating > 0 %}
+                        <div class="carousel-rating-badge">
+                            <i class="bi bi-star-fill text-warning me-1"></i>{{ rec.book.average_rating }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="carousel-info-olms">
+                    <div class="carousel-title-olms text-truncate">{{ rec.book.title }}</div>
+                    <div class="carousel-author-olms text-truncate">{{ rec.book.author }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {# ── Currently Borrowed ─────────────────────────────────────── #}
 <div class="card-olms mb-4">
     <div class="card-header-olms">

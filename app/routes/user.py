@@ -35,11 +35,23 @@ def dashboard():
             'days': issue_service.get_days_remaining(book.due_date),
         }
 
+    # Fetch recommendations
+    recommendations = book_service.get_personalized_recommendations(current_user.id)
+    
+    # Prepare recommendations with covers
+    final_recs = []
+    for book in recommendations:
+        final_recs.append({
+            'book': book,
+            'cover_url': book_service.get_book_cover_url(book.title, book.author)
+        })
+
     return render_template(
         'user/dashboard.html',
         active_books=active_books,
         returned_books=returned_books,
         due_date_info=due_date_info,
+        recommendations=final_recs
     )
 
 

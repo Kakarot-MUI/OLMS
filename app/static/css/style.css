@@ -1079,3 +1079,125 @@ a:hover {
         font-size: 1.5rem;
     }
 }
+
+/* ── Recommendations Carousel ───────────────────────── */
+.recommendations-container {
+    margin: 0 -1rem;
+    padding: 0 1rem;
+    overflow: hidden;
+}
+
+.recommendations-carousel {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1.5rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+.recommendations-carousel::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.carousel-item-olms {
+    flex: 0 0 160px;
+    scroll-snap-align: start;
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+}
+
+.carousel-item-olms:hover {
+    transform: translateY(-5px);
+}
+
+.carousel-card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.carousel-cover-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.carousel-cover-fallback {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.fallback-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.carousel-rating-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    z-index: 2;
+}
+
+.carousel-info-olms {
+    margin-top: 0.75rem;
+}
+
+.carousel-title-olms {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+}
+
+.carousel-author-olms {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .carousel-card {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+@media (max-width: 575.98px) {
+    .carousel-item-olms {
+        flex: 0 0 130px;
+    }
+}
