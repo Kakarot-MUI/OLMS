@@ -118,19 +118,52 @@ def users():
     return render_template('admin/users.html', pagination=pagination, search_query=search_query)
 
 
-@admin_bp.route('/users/toggle/<int:user_id>', methods=['POST'])
+@admin_bp.route('/users/toggle-status/<int:user_id>', methods=['POST'])
 @admin_required
 def toggle_user_status(user_id):
     """Block or unblock a user."""
     user = User.query.get_or_404(user_id)
     if user.is_admin:
-        flash('Cannot modify admin accounts.', 'danger')
+        flash('Cannot modify status of an admin account.', 'danger')
         return redirect(url_for('admin.users'))
-
+    
     user.status = 'blocked' if user.status == 'active' else 'active'
     db.session.commit()
-    status_text = 'blocked' if user.status == 'blocked' else 'activated'
-    flash(f'User {user.name} has been {status_text}.', 'success')
+    flash(f'Member {user.name} has been {user.status}.', 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/users/delete/<int:user_id>', methods=['POST'])
+@admin_required
+def delete_user(user_id):
+    """Permanently delete a user and their associated history."""
+    user = User.query.get_or_404(user_id)
+    
+    if user.role == 'admin':
+        flash("Admin accounts cannot be deleted here.", "danger")
+        return redirect(url_for('admin.users'))
+
+    # Crucial safety check: Don't let users with active books be deleted
+    active_issues = IssuedBook.query.filter(
+        IssuedBook.user_id == user_id, 
+        IssuedBook.status.in_(['issued', 'overdue'])
+    ).count()
+    
+    if active_issues > 0:
+        flash(f"Cannot delete member. {user.name} currently has {active_issues} books in their possession. Please return or resolve these books first.", "danger")
+        return redirect(url_for('admin.users'))
+
+    # Manual cleanup for relationships without automatic cascades
+    Message.query.filter((Message.sender_id == user.id) | (Message.receiver_id == user.id)).delete()
+    
+    # Delete issue history (cannot set to NULL because user_id is mandatory)
+    IssuedBook.query.filter_by(user_id=user.id).delete()
+
+    # Database handles saved_books, reviews, book_requests, push_subscriptions via cascades
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f"Member '{user.name}' and all their data have been permanently deleted.", "success")
     return redirect(url_for('admin.users'))
 
 
