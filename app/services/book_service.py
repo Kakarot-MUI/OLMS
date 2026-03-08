@@ -166,26 +166,26 @@ def get_personalized_recommendations(user_id, limit=10):
     import collections
 
     # 1. Get categories of books the user has interacted with
-    borrowed_cats = db.session.query(Book.category).join(IssuedBook).filter(IssuedBook.user_id == user_id).all()
-    saved_cats = db.session.query(Book.category).join(SavedBook).filter(SavedBook.user_id == user_id).all()
+    interacted_books = db.session.query(Book.category, Book.id).join(IssuedBook).filter(IssuedBook.user_id == user_id).all()
+    interacted_saved = db.session.query(Book.category, Book.id).join(SavedBook).filter(SavedBook.user_id == user_id).all()
     
-    all_interacted_cats = [c[0] for c in borrowed_cats + saved_cats]
+    all_interacted = interacted_books + interacted_saved
+    all_interacted_cats = [b[0] for b in all_interacted]
+    borrowed_ids = [b[1] for b in interacted_books]
     
     # 2. Calculate top categories
     cat_counts = collections.Counter(all_interacted_cats)
     top_categories = [cat for cat, count in cat_counts.most_common(2)]
     
-    # 3. Get IDs of books user already borrowed (to avoid recommending them)
-    borrowed_ids = [b[0] for b in db.session.query(IssuedBook.book_id).filter(IssuedBook.user_id == user_id).all()]
-    
     recommendations = []
     
     if top_categories:
         # Find books in their favorite categories they haven't read, sorted by rating
-        fav_cat_recs = db.session.query(Book).outerjoin(Review).filter(
-            Book.category.in_(top_categories),
-            ~Book.id.in_(borrowed_ids)
-        ).group_by(Book.id).order_by(
+        query = db.session.query(Book).outerjoin(Review).filter(Book.category.in_(top_categories))
+        if borrowed_ids:
+            query = query.filter(~Book.id.in_(borrowed_ids))
+            
+        fav_cat_recs = query.group_by(Book.id).order_by(
             func.avg(Review.rating).desc().nullslast(),
             Book.total_copies.desc()
         ).limit(limit).all()
@@ -197,10 +197,11 @@ def get_personalized_recommendations(user_id, limit=10):
         needed = limit - len(recommendations)
         existing_ids = [b.id for b in recommendations] + borrowed_ids
         
-        # Get books with highest average rating overall
-        trending = db.session.query(Book).outerjoin(Review).filter(
-            ~Book.id.in_(existing_ids)
-        ).group_by(Book.id).order_by(
+        query = db.session.query(Book).outerjoin(Review)
+        if existing_ids:
+            query = query.filter(~Book.id.in_(existing_ids))
+            
+        trending = query.group_by(Book.id).order_by(
             func.avg(Review.rating).desc().nullslast(),
             Book.total_copies.desc()
         ).limit(needed).all()
