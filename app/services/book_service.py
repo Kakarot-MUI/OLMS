@@ -178,21 +178,14 @@ def get_personalized_recommendations(user_id, limit=10):
     # helper to get books with ratings without complex group by
     def get_books_query(base_query, current_borrowed, num_needed):
         from app.models import Review, Book
-        # We join on a subquery of average ratings
+        # 1. Subquery for average ratings
         ratings_sub = db.session.query(
             Review.book_id, 
             func.avg(Review.rating).label('avg_rating')
         ).group_by(Review.book_id).subquery()
         
-        # Explicitly query only the Book model to avoid receiving tuples
-        q = db.session.query(Book).select_from(Book)
-        
-        # Apply filters from base_query (if it has any)
-        if hasattr(base_query, '_criterion') and base_query._criterion is not None:
-            q = q.filter(base_query._criterion)
-            
-        q = q.outerjoin(ratings_sub, Book.id == ratings_sub.c.book_id)
-        
+        # 2. Apply join and ordering to the query
+        q = base_query.outerjoin(ratings_sub, Book.id == ratings_sub.c.book_id)
         if current_borrowed:
             q = q.filter(~Book.id.in_(current_borrowed))
             
@@ -201,15 +194,15 @@ def get_personalized_recommendations(user_id, limit=10):
             Book.total_copies.desc()
         ).limit(num_needed).all()
         
-        # Ensure we return objects, even if SQLAlchemy returns Row objects
+        # 3. Robustly extract Book objects in case SQLAlchemy returns tuples
         final_list = []
         for r in results:
             if isinstance(r, Book):
                 final_list.append(r)
-            elif hasattr(r, 'Book'): # Case for tuple result (Book, avg_rating)
-                final_list.append(r.Book)
-            elif isinstance(r, (list, tuple)) and len(r) > 0:
+            elif isinstance(r, (list, tuple)) and len(r) > 0 and isinstance(r[0], Book):
                 final_list.append(r[0])
+            elif hasattr(r, '_mapping') and 'Book' in r._mapping: # SQLAlchemy 1.4+ Row
+                final_list.append(r._mapping['Book'])
         return final_list
 
     # 2. Get recommendations from favorite categories
@@ -223,6 +216,10 @@ def get_personalized_recommendations(user_id, limit=10):
         exclude_ids = borrowed_ids + [b.id for b in recommendations]
         trending = get_books_query(Book.query, exclude_ids, needed)
         recommendations.extend(trending)
+        
+    # 4. Super Fallback: If still empty (possible on empty databases), just get some books
+    if not recommendations:
+        recommendations = Book.query.limit(limit).all()
         
     return recommendations[:limit]
 
