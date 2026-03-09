@@ -341,48 +341,53 @@ def scan_book():
 @admin_required
 def scan_book_api():
     """API endpoint to add a book from scanned QR data."""
-    import json as json_lib
     from flask import jsonify
 
-    raw_data = request.json.get('qr_data', '').strip() if request.is_json else ''
-    if not raw_data:
-        return jsonify({'success': False, 'error': 'No QR data received.'}), 400
+    if not request.is_json:
+        return jsonify({'success': False, 'error': 'Invalid request format.'}), 400
 
-    title = author = category = ''
-    copies = 1
+    data = request.json
+    
+    # Check if we are receiving raw qr_data (old flow) or direct fields (new flow)
+    if 'qr_data' in data:
+        import json as json_lib
+        raw_data = data.get('qr_data', '').strip()
+        
+        title = author = category = ''
+        copies = 1
 
-    # Try JSON format: {"title":"...","author":"...","category":"...","copies":N}
-    try:
-        parsed = json_lib.loads(raw_data)
-        if isinstance(parsed, dict):
-            title = parsed.get('title', parsed.get('Title', '')).strip()
-            author = parsed.get('author', parsed.get('Author', '')).strip()
-            category = parsed.get('category', parsed.get('Category', 'General')).strip()
-            copies = int(parsed.get('copies', parsed.get('Copies', parsed.get('total_copies', 1))))
-    except (json_lib.JSONDecodeError, ValueError):
-        # Try pipe-delimited: Title|Author|Category|Copies
-        if '|' in raw_data:
-            parts = [p.strip() for p in raw_data.split('|')]
-        # Try comma-delimited: Title,Author,Category,Copies
-        elif ',' in raw_data:
-            parts = [p.strip() for p in raw_data.split(',')]
-        # Try newline-delimited
-        elif '\n' in raw_data:
-            parts = [p.strip() for p in raw_data.split('\n')]
-        else:
-            # Single value — treat as title
-            parts = [raw_data]
-
-        title = parts[0] if len(parts) > 0 else ''
-        author = parts[1] if len(parts) > 1 else 'Unknown'
-        category = parts[2] if len(parts) > 2 else 'General'
+        # Try JSON format
         try:
-            copies = int(parts[3]) if len(parts) > 3 else 1
-        except ValueError:
+            parsed = json_lib.loads(raw_data)
+            if isinstance(parsed, dict):
+                title = parsed.get('title', parsed.get('Title', '')).strip()
+                author = parsed.get('author', parsed.get('Author', '')).strip()
+                category = parsed.get('category', parsed.get('Category', 'General')).strip()
+                copies = int(parsed.get('copies', parsed.get('Copies', parsed.get('total_copies', 1))))
+        except (json_lib.JSONDecodeError, ValueError):
+            # Try delimiters...
+            if '|' in raw_data: parts = [p.strip() for p in raw_data.split('|')]
+            elif ',' in raw_data: parts = [p.strip() for p in raw_data.split(',')]
+            elif '\n' in raw_data: parts = [p.strip() for p in raw_data.split('\n')]
+            else: parts = [raw_data]
+
+            title = parts[0] if len(parts) > 0 else ''
+            author = parts[1] if len(parts) > 1 else 'Unknown'
+            category = parts[2] if len(parts) > 2 else 'General'
+            try: copies = int(parts[3]) if len(parts) > 3 else 1
+            except ValueError: copies = 1
+    else:
+        # New flow: get fields directly from the modal form
+        title = data.get('title', '').strip()
+        author = data.get('author', 'Unknown').strip()
+        category = data.get('category', 'General').strip()
+        try:
+            copies = int(data.get('copies', 1))
+        except (ValueError, TypeError):
             copies = 1
 
     if not title:
-        return jsonify({'success': False, 'error': 'Could not extract book title from QR data.'}), 400
+        return jsonify({'success': False, 'error': 'Book title is required.'}), 400
 
     # Check if book already exists
     existing = Book.query.filter_by(title=title, author=author).first()

@@ -6,52 +6,131 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-7">
-        <div class="card-olms">
-            <div class="card-header-olms">
-                <i class="bi bi-box-arrow-right text-primary"></i> Issue a Book
+        <div class="card-olms shadow-sm border-0">
+            <div class="card-header-olms bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-box-arrow-right me-2"></i>Issue a Book</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="POST" novalidate>
                     {{ form.hidden_tag() }}
 
-                    <div class="mb-3">
-                        {{ form.user_id.label(class="form-label") }}
-                        {{ form.user_id(class="form-select" + (" is-invalid" if form.user_id.errors else ""),
-                        id="issue-user") }}
+                    <div class="mb-4">
+                        {{ form.user_id.label(class="form-label fw-bold") }}
+                        {{ form.user_id(class="form-select", id="issue-user") }}
                         {% for error in form.user_id.errors %}
-                        <div class="invalid-feedback">{{ error }}</div>
+                        <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
+                        <small class="text-muted mt-1 d-block">Select a student from the active member list.</small>
                     </div>
 
-                    <div class="mb-3">
-                        {{ form.book_id.label(class="form-label") }}
-                        {{ form.book_id(class="form-select" + (" is-invalid" if form.book_id.errors else ""),
-                        id="issue-book") }}
+                    <div class="mb-4">
+                        {{ form.book_id.label(class="form-label fw-bold") }}
+                        {{ form.book_id(class="form-select", id="issue-book") }}
                         {% for error in form.book_id.errors %}
-                        <div class="invalid-feedback">{{ error }}</div>
+                        <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
+                        <small class="text-muted mt-1 d-block">Only books with available copies are shown.</small>
                     </div>
 
-                    <div class="mb-3">
-                        {{ form.issue_days.label(class="form-label") }}
+                    <div class="mb-4">
+                        {{ form.issue_days.label(class="form-label fw-bold") }}
                         <div class="input-group">
                             {{ form.issue_days(class="form-control" + (" is-invalid" if form.issue_days.errors else ""),
                             id="issue-days", min="1", max="365") }}
-                            <span class="input-group-text">days</span>
+                            <span class="input-group-text bg-light text-muted">days</span>
                         </div>
                         {% for error in form.issue_days.errors %}
                         <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
-                        <small class="text-muted">Default: 14 days. Change to set a custom borrow duration.</small>
+                        <small class="text-muted mt-1 d-block">Default borrow duration is 14 days.</small>
                     </div>
 
-                    <div class="d-flex gap-2">
-                        {{ form.submit(class="btn btn-primary", id="issue-submit") }}
-                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <div class="d-flex gap-2 pt-2">
+                        {{ form.submit(class="btn btn-primary px-4 fw-bold", id="issue-submit") }}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary px-4">Cancel</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+{# Tom Select (Modern searchable selects) #}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize Tom Select for User
+        new TomSelect('#issue-user', {
+            create: false,
+            placeholder: 'Type student name or email...',
+            maxItems: 1,
+            render: {
+                no_results: function (data, escape) {
+                    return '<div class="no-results">No members found for "' + escape(data.input) + '"</div>';
+                }
+            }
+        });
+
+        // Initialize Tom Select for Book
+        new TomSelect('#issue-book', {
+            create: false,
+            placeholder: 'Type book title or author...',
+            maxItems: 1,
+            render: {
+                no_results: function (data, escape) {
+                    return '<div class="no-results">No available books found for "' + escape(data.input) + '"</div>';
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Premium styling for Tom Select to match OLMS theme */
+    .ts-control {
+        border-radius: 8px !important;
+        padding: 10px 12px !important;
+        border-color: #dee2e6 !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .ts-control:focus {
+        border-color: var(--bs-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
+    }
+
+    .ts-dropdown {
+        border-radius: 8px !important;
+        margin-top: 5px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        border: 0 !important;
+    }
+
+    .ts-dropdown .active {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+    }
+
+    .no-results {
+        padding: 10px;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    [data-theme="dark"] .ts-control {
+        background-color: #2b3035 !important;
+        color: #f8f9fa !important;
+        border-color: #495057 !important;
+    }
+
+    [data-theme="dark"] .ts-dropdown {
+        background-color: #2b3035 !important;
+        color: #f8f9fa !important;
+    }
+
+    [data-theme="dark"] .ts-dropdown .option:hover {
+        background-color: #343a40 !important;
+    }
+</style>
 {% endblock %}

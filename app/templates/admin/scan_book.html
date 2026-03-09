@@ -11,8 +11,8 @@
                 <i class="bi bi-qr-code-scan text-primary"></i> Scan Book QR Code
             </div>
             <div class="card-body text-center">
-                <p class="text-muted mb-3">Point your camera at the QR code on the book to scan and add it
-                    automatically.</p>
+                <p class="text-muted mb-3">Point your camera at the QR code on the book to scan and verify it before
+                    adding.</p>
 
                 {# Scanner container #}
                 <div id="qr-reader"
@@ -31,7 +31,7 @@
                                 placeholder='e.g. {"title":"Book","author":"Author","category":"Fiction","copies":2}'>
                             <button class="btn btn-primary" type="button"
                                 onclick="processQRData(document.getElementById('manual-qr').value)">
-                                <i class="bi bi-plus-lg me-1"></i>Add
+                                <i class="bi bi-search me-1"></i>Parse
                             </button>
                         </div>
                     </div>
@@ -49,17 +49,19 @@
                     <i class="bi bi-check2-circle text-success"></i> Books Added This Session
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Author</th>
-                                <th>Category</th>
-                                <th>Copies</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scanned-list"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Title</th>
+                                    <th>Author</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Copies</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scanned-list"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,11 +89,54 @@
     </div>
 </div>
 
+{# Edit Book Modal #}
+<div class="modal fade" id="editScanModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Verify Book Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
+                    onclick="resumeScanner()"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editScanForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Book Title</label>
+                        <input type="text" class="form-control" id="modal-title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Author</label>
+                        <input type="text" class="form-control" id="modal-author" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label fw-bold">Category</label>
+                            <input type="text" class="form-control" id="modal-category" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label fw-bold">Total Copies</label>
+                            <input type="number" class="form-control" id="modal-copies" min="1" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal"
+                    onclick="resumeScanner()">Cancel</button>
+                <button type="button" class="btn btn-primary px-4 fw-bold" id="confirmAddBtn">
+                    <i class="bi bi-plus-lg me-1"></i> Confirm & Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {# html5-qrcode library #}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
     const csrfToken = '{{ csrf_token() }}';
     let scanner = null;
+    let editModal = null;
 
     function showStatus(msg, type) {
         const el = document.getElementById('scan-status');
@@ -106,16 +151,85 @@
         const container = document.getElementById('scanned-books');
         container.style.display = 'block';
         const tbody = document.getElementById('scanned-list');
-        tbody.innerHTML = '<tr><td><strong>' + book.title + '</strong></td><td>' + book.author + '</td><td>' + book.category + '</td><td>' + book.total_copies + '</td></tr>' + tbody.innerHTML;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="ps-4"><strong>${book.title}</strong></td>
+            <td>${book.author}</td>
+            <td><span class="badge bg-light text-dark border">${book.category}</span></td>
+            <td class="text-center fw-bold">${book.total_copies}</td>
+        `;
+        tbody.prepend(row);
+    }
+
+    function parseQRData(data) {
+        let title = '', author = 'Unknown', category = 'General', copies = 1;
+        try {
+            const parsed = JSON.parse(data);
+            if (typeof parsed === 'object') {
+                title = parsed.title || parsed.Title || '';
+                author = parsed.author || parsed.Author || 'Unknown';
+                category = parsed.category || parsed.Category || 'General';
+                copies = parseInt(parsed.copies || parsed.Copies || parsed.total_copies || 1);
+            }
+        } catch (e) {
+            let parts = [];
+            if (data.includes('|')) parts = data.split('|');
+            else if (data.includes(',')) parts = data.split(',');
+            else if (data.includes('\n')) parts = data.split('\n');
+            else parts = [data];
+
+            title = parts[0]?.trim() || '';
+            author = parts[1]?.trim() || 'Unknown';
+            category = parts[2]?.trim() || 'General';
+            copies = parseInt(parts[3]) || 1;
+        }
+        return { title, author, category, copies };
     }
 
     function processQRData(data) {
         if (!data || !data.trim()) {
             showStatus('Empty QR data. Please scan again.', 'warning');
+            resumeScanner();
             return;
         }
 
-        showStatus('Processing scanned data...', 'info');
+        const book = parseQRData(data);
+        if (!book.title) {
+            showStatus('Could not identify book title. Please scan a valid QR code.', 'danger');
+            resumeScanner();
+            return;
+        }
+
+        // Populate modal
+        document.getElementById('modal-title').value = book.title;
+        document.getElementById('modal-author').value = book.author;
+        document.getElementById('modal-category').value = book.category;
+        document.getElementById('modal-copies').value = book.copies;
+
+        editModal.show();
+    }
+
+    function resumeScanner() {
+        setTimeout(() => {
+            try { scanner.resume(); } catch (e) { }
+        }, 500);
+    }
+
+    document.getElementById('confirmAddBtn').addEventListener('click', function () {
+        const bookData = {
+            title: document.getElementById('modal-title').value.trim(),
+            author: document.getElementById('modal-author').value.trim(),
+            category: document.getElementById('modal-category').value.trim(),
+            copies: parseInt(document.getElementById('modal-copies').value) || 1
+        };
+
+        if (!bookData.title) {
+            alert('Title is required.');
+            return;
+        }
+
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
 
         fetch('/admin/scan/add', {
             method: 'POST',
@@ -123,32 +237,38 @@
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken,
             },
-            body: JSON.stringify({ qr_data: data }),
+            body: JSON.stringify(bookData),
         })
-            .then(r => r.json().then(d => ({ status: r.status, data: d })))
-            .then(({ status, data }) => {
+            .then(r => r.json())
+            .then(data => {
                 if (data.success) {
                     showStatus(data.message, 'success');
                     addToList(data.book);
-                    // Play a success beep
+                    editModal.hide();
+                    resumeScanner();
+                    // Play success sound
                     try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgkKuwo2BCJTN0teleQR0ePXOdoJBcLSIzZpmhk2Q4JSxbkZ+UXy4lLV2UoJBaLSMtW5Sfk10uIyxdlaCSWi0jLVuUn5NdLyUsXZWgklouIy1bkp+TXS8lLFyVoJNcLyMsW5Kfk1wvJSxclaCTXC4jLV2Un5NbLyQsXZWgk1wuIy1dlJ+TWy8kLF2VoJRcLiMtXZSfk1svJCxdlaCUXC4jLV2Un5NbLyQsXJWgk1wvIyxdlJ+UWy8kLVyVoJNcLiMtXZSfk1svJCxdlaCTXC4jLV2Un5NbLiQsXZWgk1wvIyxdlJ+UWy8kLVyVoJNcLiMtXZSfk1svJCxdlaCTXC4jLV2Tn5NbLyQsXZWgk1wuIy1dlJ+TWy8kLF2VoJNcLSMtXZSfk1svJCxdlaCTXC4jLV2Un5NbLyQsXZWg').play(); } catch (e) { }
                 } else {
                     showStatus(data.error, 'danger');
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-plus-lg me-1"></i> Confirm & Add';
                 }
             })
             .catch(err => {
                 showStatus('Network error: ' + err.message, 'danger');
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-plus-lg me-1"></i> Confirm & Add';
             });
-    }
+    });
 
     // Initialize QR scanner
     document.addEventListener('DOMContentLoaded', function () {
+        editModal = new bootstrap.Modal(document.getElementById('editScanModal'));
         scanner = new Html5Qrcode('qr-reader');
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        const config = { fps: 15, qrbox: { width: 280, height: 280 } };
 
         Html5Qrcode.getCameras().then(cameras => {
             if (cameras && cameras.length) {
-                // Prefer back camera
                 let cameraId = cameras[0].id;
                 for (let c of cameras) {
                     if (c.label && c.label.toLowerCase().includes('back')) {
@@ -158,15 +278,10 @@
                 }
                 scanner.start(cameraId, config,
                     (decodedText) => {
-                        // Pause scanning while processing
                         scanner.pause(true);
                         processQRData(decodedText);
-                        // Resume after 3 seconds
-                        setTimeout(() => {
-                            try { scanner.resume(); } catch (e) { }
-                        }, 3000);
                     },
-                    (errorMessage) => { /* ignore scan errors */ }
+                    () => { }
                 ).catch(err => {
                     showStatus('Camera error: ' + err + '. Use manual input below.', 'warning');
                 });
@@ -174,7 +289,7 @@
                 showStatus('No cameras found. Use the manual input option below.', 'warning');
             }
         }).catch(err => {
-            showStatus('Cannot access cameras. Please allow camera permissions or use manual input.', 'warning');
+            showStatus('Cannot access cameras. Use manual input.', 'warning');
         });
     });
 </script>
