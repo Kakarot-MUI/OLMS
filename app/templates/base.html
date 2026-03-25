@@ -28,15 +28,14 @@
         })();
     </script>
 
-    {# ── Premium Loading Screen ────────────────────────────────── #}
-    <div id="appLoader">
+    {# ── Premium Loading Screen (only on first visit / cold start) ─ #}
+    <div id="appLoader" style="display:none;">
         <style>
             #appLoader {
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
                 z-index: 99999;
                 background: #0f172a;
-                display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
@@ -102,14 +101,21 @@
         <div class="loader-bar-track"><div class="loader-bar-fill"></div></div>
     </div>
     <script>
-        // Hide loader once DOM content is fully ready
-        window.addEventListener('load', function () {
+        (function () {
             var loader = document.getElementById('appLoader');
-            if (loader) {
-                loader.classList.add('loaded');
-                setTimeout(function () { loader.remove(); }, 600);
+            // Only show loader on FIRST visit of this browser session (cold start)
+            if (!sessionStorage.getItem('olms-loaded')) {
+                loader.style.display = 'flex';
+                sessionStorage.setItem('olms-loaded', '1');
+                window.addEventListener('load', function () {
+                    loader.classList.add('loaded');
+                    setTimeout(function () { loader.remove(); }, 600);
+                });
+            } else {
+                // Already visited in this session — skip loader entirely
+                loader.remove();
             }
-        });
+        })();
     </script>
     {# ── Flash Messages ─────────────────────────────────────────── #}
     {% with messages = get_flashed_messages(with_categories=true) %}
