@@ -72,10 +72,24 @@ class User(UserMixin, db.Model):
 
     @property
     def last_seen_formatted(self):
-        """Format the last active timestamp for display."""
+        """Format the last active timestamp for relative display."""
         if not self.last_active_at:
             return "Never"
-        return self.last_active_at.strftime('%b %d, %H:%M')
+        from datetime import datetime
+        now = datetime.utcnow()
+        delta = now - self.last_active_at
+        
+        seconds = int(delta.total_seconds())
+        if seconds < 60:
+            return "Just now"
+        if seconds < 3600:
+            minutes = seconds // 60
+            return f"{minutes}m ago"
+        if seconds < 86400:
+            hours = seconds // 3600
+            return f"{hours}h ago"
+        days = seconds // 86400
+        return f"{days}d ago"
 
     def __repr__(self):
         return f'<User {self.email}>'
