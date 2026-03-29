@@ -84,8 +84,16 @@
         {% if messages %}
         {% for msg in messages %}
         <div
-            class="d-flex flex-column {{ 'align-items-end' if msg.sender_id == current_user.id else 'align-items-start' }}">
-            <div class="chat-bubble {{ 'sent' if msg.sender_id == current_user.id else 'received' }}">
+            class="d-flex flex-column {{ 'align-items-end' if msg.sender_id == current_user.id else 'align-items-start' }} message-wrapper">
+            <div class="chat-bubble {{ 'sent' if msg.sender_id == current_user.id else 'received' }} position-relative">
+                {% if msg.sender_id == current_user.id %}
+                <form action="{{ url_for('user.delete_message', message_id=msg.id) }}" method="POST" class="delete-form" onsubmit="return confirm('Delete this message?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-link p-0 text-white opacity-50 hover-opacity-100 delete-btn" style="position: absolute; top: 2px; right: 8px;">
+                        <i class="bi bi-x-circle-fill" style="font-size: 0.8rem;"></i>
+                    </button>
+                </form>
+                {% endif %}
                 {{ msg.content }}
                 <div class="chat-time">
                     {{ 'You' if msg.sender_id == current_user.id else 'Librarian' }}

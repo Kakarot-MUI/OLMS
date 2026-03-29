@@ -1280,3 +1280,17 @@ a:hover {
 
 .fs-xs { font-size: 0.75rem; }
 .fw-600 { font-weight: 600; }
+
+/* ── Chat Delete Button ────────────────────────────────────────── */
+.chat-bubble .delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.chat-bubble:hover .delete-btn {
+    opacity: 0.6;
+}
+
+.chat-bubble .delete-btn:hover {
+    opacity: 1 !important;
+}

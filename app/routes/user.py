@@ -72,6 +72,23 @@ def librarian_status():
     })
 
 
+@user_bp.route('/chat/delete/<int:message_id>', methods=['POST'])
+@login_required
+def delete_message(message_id):
+    """Delete a chat message. Student can delete own, Admin can delete any."""
+    message = Message.query.get_or_404(message_id)
+    
+    # Check permissions (is sender or is admin)
+    if message.sender_id == current_user.id or current_user.role == 'admin':
+        db.session.delete(message)
+        db.session.commit()
+        flash('Message deleted.', 'success')
+    else:
+        flash('Permission denied.', 'danger')
+        
+    return redirect(request.referrer or url_for('user.chat'))
+
+
 @user_bp.route('/search')
 @active_required
 def search():
