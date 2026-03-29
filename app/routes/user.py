@@ -59,6 +59,16 @@ def dashboard():
     )
 
 
+@user_bp.route('/api/librarian-status')
+@active_required
+def librarian_status():
+    """API endpoint to check Librarian online status (for AJAX polling)."""
+    admin = User.query.filter_by(role='admin').first()
+    if not admin:
+        return jsonify({'is_online': False})
+    return jsonify({'is_online': admin.is_online})
+
+
 @user_bp.route('/search')
 @active_required
 def search():

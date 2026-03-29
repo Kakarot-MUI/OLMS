@@ -68,7 +68,7 @@ class User(UserMixin, db.Model):
         from datetime import datetime
         now = datetime.utcnow()
         delta = now - self.last_active_at
-        return delta.total_seconds() < 120 # 2 minutes
+        return delta.total_seconds() < 60 # 1 minute
 
     @property
     def last_seen_formatted(self):
