@@ -20,6 +20,12 @@
             <!-- Global Chat Link -->
             <a class="nav-link position-relative px-2 text-white" href="{{ url_for('user.chat') }}" title="Messages">
                 <i class="bi bi-chat-dots fs-5"></i>
+                {% if admin_is_online %}
+                <span class="position-absolute top-100 start-100 translate-middle p-1 bg-success border border-light rounded-circle"
+                    style="margin-left: -5px; margin-top: -5px; border-width: 2px !important;" title="Librarian is Online">
+                    <span class="visually-hidden">Online</span>
+                </span>
+                {% endif %}
                 {% if unread_chat_count > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                     style="font-size: 0.5rem; margin-top: 5px; border: 1px solid var(--primary-olms);">
@@ -200,7 +206,12 @@
                     <li class="nav-item">
                         <a class="nav-link py-2 d-flex align-items-center justify-content-between"
                             href="{{ url_for('user.chat') }}">
-                            <span><i class="bi bi-chat-dots me-3"></i>Messages</span>
+                            <span>
+                                <i class="bi bi-chat-dots me-3"></i>Messages
+                                {% if admin_is_online %}
+                                <span class="badge bg-success rounded-pill ms-2" style="font-size: 0.6rem;">Online</span>
+                                {% endif %}
+                            </span>
                             {% if unread_chat_count > 0 %}
                             <span class="badge bg-danger rounded-pill">{{ unread_chat_count }}</span>
                             {% endif %}

@@ -53,6 +53,15 @@ def create_app(config_name='development'):
     app.register_blueprint(errors_bp)
     app.register_blueprint(push_bp)
 
+    # Activity Tracking (Online status)
+    @app.before_request
+    def update_last_active():
+        from flask_login import current_user
+        from datetime import datetime
+        if current_user.is_authenticated:
+            current_user.last_active_at = datetime.utcnow()
+            db.session.commit()
+
     # Global variables for templates (Notifications)
     @app.context_processor
     def inject_notifications():
@@ -79,9 +88,17 @@ def create_app(config_name='development'):
                     IssuedBook.due_date <= warning_date
                 ).count()
                 
+        from app.models import User
+        admin_is_online = False
+        if current_user.is_authenticated and current_user.role == 'user':
+            admin = User.query.filter_by(role='admin').first()
+            if admin:
+                admin_is_online = admin.is_online
+                
         return dict(
             unread_chat_count=unread_chat_count,
-            due_books_count=due_books_count
+            due_books_count=due_books_count,
+            admin_is_online=admin_is_online
         )
 
     # Serve Service Worker at root level for Web Push scope
@@ -139,6 +156,16 @@ def create_app(config_name='development'):
                 if not cursor.fetchone():
                     cursor.execute("ALTER TABLE issued_books ADD COLUMN notified_due_soon BOOLEAN NOT NULL DEFAULT FALSE;")
                     app.logger.info("Added notified_due_soon column to PostgreSQL.")
+                
+                # Check if last_active_at exists in users table
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='users' AND column_name='last_active_at';
+                """)
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE users ADD COLUMN last_active_at TIMESTAMP NULL;")
+                    app.logger.info("Added last_active_at column to PostgreSQL.")
                     
                 conn.close()
             except Exception as e:
@@ -159,6 +186,12 @@ def create_app(config_name='development'):
                 
             try:
                 db.session.execute(text("ALTER TABLE issued_books ADD COLUMN notified_due_soon BOOLEAN NOT NULL DEFAULT FALSE"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            try:
+                db.session.execute(text("ALTER TABLE users ADD COLUMN last_active_at DATETIME NULL"))
                 db.session.commit()
             except Exception:
                 db.session.rollback()

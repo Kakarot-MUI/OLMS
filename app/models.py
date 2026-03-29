@@ -20,6 +20,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default='user', index=True)
     status = db.Column(db.String(20), nullable=False, default='active', index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_active_at = db.Column(db.DateTime, nullable=True)
 
     # Student profile fields
     roll_number = db.Column(db.String(50), nullable=True, index=True)
@@ -58,6 +59,23 @@ class User(UserMixin, db.Model):
     def is_flagged(self):
         """Returns True if the user has any unpaid fines, blocking them from issuing new books."""
         return self.total_unpaid_fines > 0
+
+    @property
+    def is_online(self):
+        """Returns True if the user has been active in the last 5 minutes."""
+        if not self.last_active_at:
+            return False
+        from datetime import datetime
+        now = datetime.utcnow()
+        delta = now - self.last_active_at
+        return delta.total_seconds() < 300 # 5 minutes
+
+    @property
+    def last_seen_formatted(self):
+        """Format the last active timestamp for display."""
+        if not self.last_active_at:
+            return "Never"
+        return self.last_active_at.strftime('%b %d, %H:%M')
 
     def __repr__(self):
         return f'<User {self.email}>'
