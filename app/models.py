@@ -62,13 +62,13 @@ class User(UserMixin, db.Model):
 
     @property
     def is_online(self):
-        """Returns True if the user has been active in the last 5 minutes."""
+        """Returns True if the user has been active in the last 2 minutes."""
         if not self.last_active_at:
             return False
         from datetime import datetime
         now = datetime.utcnow()
         delta = now - self.last_active_at
-        return delta.total_seconds() < 300 # 5 minutes
+        return delta.total_seconds() < 120 # 2 minutes
 
     @property
     def last_seen_formatted(self):
