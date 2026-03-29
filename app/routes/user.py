@@ -65,8 +65,11 @@ def librarian_status():
     """API endpoint to check Librarian online status (for AJAX polling)."""
     admin = User.query.filter_by(role='admin').first()
     if not admin:
-        return jsonify({'is_online': False})
-    return jsonify({'is_online': admin.is_online})
+        return jsonify({'is_online': False, 'last_seen': 'Never'})
+    return jsonify({
+        'is_online': admin.is_online,
+        'last_seen': admin.last_seen_formatted
+    })
 
 
 @user_bp.route('/search')

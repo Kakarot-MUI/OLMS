@@ -144,11 +144,7 @@
                 } else {
                     dot.className = 'status-dot offline';
                     text.className = 'ms-1 fw-medium text-muted';
-                    // We don't have the "last seen" timestamp in the API yet, 
-                    // but we ensure the "Offline" state is updated.
-                    if (text.textContent === 'Online') {
-                        text.textContent = 'Away';
-                    }
+                    text.textContent = 'Away (Last seen: ' + data.last_seen + ')';
                 }
             })
             .catch(err => console.error('Status poll failed:', err));
