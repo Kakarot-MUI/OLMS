@@ -15,7 +15,7 @@
 
 {# ── New Student Onboarding (Auto-Welcome) ────────────────────── #}
 {% if is_new_user %}
-<div class="card-olms mb-4" style="background: linear-gradient(135deg, var(--primary-light), #fff);">
+<div class="card card-olms welcome-card-gradient mb-4 border-0">
     <div class="card-body p-4">
         <div class="row align-items-center">
             <div class="col-md-8">
@@ -25,10 +25,10 @@
                     {% for book in suggested_books %}
                     <div class="col-sm-6 col-md-3">
                         <a href="{{ url_for('user.book_detail', book_id=book.id) }}" class="text-decoration-none">
-                            <div class="card h-100 border-0 shadow-sm hover-lift">
+                            <div class="card h-100 border-0 shadow-sm hover-lift" style="background: var(--bg-card);">
                                 <div class="card-body p-2 text-center">
                                     <div class="mb-2" style="font-size: 1.5rem;"><i class="bi bi-journal-bookmark-fill text-primary"></i></div>
-                                    <div class="fw-bold small text-dark text-truncate">{{ book.title }}</div>
+                                    <div class="fw-bold small text-theme text-truncate">{{ book.title }}</div>
                                     <div class="text-muted" style="font-size: 0.7rem;">{{ book.author }}</div>
                                 </div>
                             </div>
