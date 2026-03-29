@@ -35,11 +35,27 @@ def dashboard():
             'days': issue_service.get_days_remaining(book.due_date),
         }
 
+    # New Arrivals Shelf
+    from app.models import Book
+    new_arrivals = Book.query.order_by(Book.created_at.desc()).limit(10).all()
+
+    # Onboarding: Check if this is a new student (no borrowing history)
+    is_new_user = (len(my_books) == 0)
+    
+    # Suggested Reading for new users (random or top rated)
+    suggested_books = []
+    if is_new_user:
+        # Get 4 high-rated or diverse books as suggestions
+        suggested_books = Book.query.order_by(Book.title.asc()).limit(4).all()
+
     return render_template(
         'user/dashboard.html',
         active_books=active_books,
         returned_books=returned_books,
-        due_date_info=due_date_info
+        due_date_info=due_date_info,
+        new_arrivals=new_arrivals,
+        is_new_user=is_new_user,
+        suggested_books=suggested_books
     )
 
 

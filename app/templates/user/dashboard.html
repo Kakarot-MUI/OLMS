@@ -13,6 +13,70 @@
     </a>
 </div>
 
+{# ── New Student Onboarding (Auto-Welcome) ────────────────────── #}
+{% if is_new_user %}
+<div class="card-olms mb-4" style="background: linear-gradient(135deg, var(--primary-light), #fff);">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h4 class="fw-bold text-primary mb-2">Welcome to Smart Library, {{ current_user.name }}!</h4>
+                <p class="text-secondary mb-4">We're excited to have you here. Since you're new, we've picked out some popular books to help you get started with your first borrow.</p>
+                <div class="row g-3">
+                    {% for book in suggested_books %}
+                    <div class="col-sm-6 col-md-3">
+                        <a href="{{ url_for('user.book_detail', book_id=book.id) }}" class="text-decoration-none">
+                            <div class="card h-100 border-0 shadow-sm hover-lift">
+                                <div class="card-body p-2 text-center">
+                                    <div class="mb-2" style="font-size: 1.5rem;"><i class="bi bi-journal-bookmark-fill text-primary"></i></div>
+                                    <div class="fw-bold small text-dark text-truncate">{{ book.title }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">{{ book.author }}</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-4 d-none d-md-block text-center">
+                <i class="bi bi-mortarboard text-primary opacity-25" style="font-size: 8rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# ── New Arrivals Shelf (Student Discoverability) ────────────── #}
+<div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="fw-bold mb-0">New to the Library</h4>
+        <a href="{{ url_for('user.search') }}" class="text-primary fw-600 text-sm">View All <i class="bi bi-chevron-right fs-xs"></i></a>
+    </div>
+    <div class="horizontal-shelf-container">
+        <div class="horizontal-shelf">
+            {% for book in new_arrivals %}
+            <div class="shelf-item">
+                <a href="{{ url_for('user.book_detail', book_id=book.id) }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body p-3">
+                            <div class="shelf-icon fiction mb-2">
+                                <i class="bi bi-book"></i>
+                            </div>
+                            <div class="shelf-title text-dark">{{ book.title }}</div>
+                            <div class="shelf-author text-muted">{{ book.author }}</div>
+                            <div class="mt-2">
+                                <span class="badge {{ 'bg-success-light text-success' if book.is_available else 'bg-danger-light text-danger' }}" style="font-size: 0.65rem;">
+                                    {{ 'Available' if book.is_available else 'Issued' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 {# ── Fines & Account Locked Alert ────────────────────────────── #}
 {% if current_user.is_flagged %}
 <div class="alert alert-danger d-flex align-items-center mb-4 shadow-sm"
