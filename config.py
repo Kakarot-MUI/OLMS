@@ -45,10 +45,14 @@ class ProductionConfig(Config):
     CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '315187185855881')
     CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', 'ROVV6S1fEiJ0midZKLZbbf6c_pQ')
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    _db_url = os.environ.get(
         'DATABASE_URL',
         'postgresql://neondb_owner:npg_RKQVm9tuzlP1@ep-autumn-flower-amtm02j8.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require'
     )
+    if _db_url.startswith('postgres://'):
+        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+        
+    SQLALCHEMY_DATABASE_URI = _db_url
 
 
 class TestingConfig(Config):
