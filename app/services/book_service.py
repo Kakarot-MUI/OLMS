@@ -189,12 +189,34 @@ def get_book_average_rating(book_id):
 
 def get_book_cover_url(book_title, book_author):
     """
-    Returns a URL for the book cover using Open Library's Search API pattern.
+    Returns a URL for the book cover using Open Library's Search API.
+    This is much more accurate than title-guessing.
     """
+    import requests
     import urllib.parse
-    # Open Library has a neat trick where you can search by title and it often 
-    # redirects to the correct cover if you use this specific URL pattern.
-    # We clean the title to ensure it's URL-safe.
-    clean_title = urllib.parse.quote(book_title.strip().lower())
-    # Size 'M' for medium, 'L' for large.
-    return f"https://covers.openlibrary.org/b/title/{clean_title}-M.jpg"
+    
+    try:
+        # Step 1: Search for the book to get its cover ID
+        query = f"title:{book_title} AND author:{book_author}"
+        safe_query = urllib.parse.quote(query)
+        search_url = f"https://openlibrary.org/search.json?q={safe_query}&limit=1"
+        
+        response = requests.get(search_url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('docs'):
+                book_doc = data['docs'][0]
+                cover_id = book_doc.get('cover_i')
+                if cover_id:
+                    # Step 2: Return the direct URL using the cover ID
+                    return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
+                
+                # Check for ISBN if no cover_i
+                isbn_list = book_doc.get('isbn')
+                if isbn_list:
+                    return f"https://covers.openlibrary.org/b/isbn/{isbn_list[0]}-M.jpg"
+    except Exception as e:
+        print(f"Error fetching cover from Open Library: {e}")
+        
+    # Final fallback if nothing found
+    return None
