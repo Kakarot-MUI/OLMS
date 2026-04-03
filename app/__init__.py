@@ -54,6 +54,22 @@ def create_app(config_name='default'):
     def sw():
         return app.send_static_file('sw.js')
 
+    # Global Context Processor
+    @app.context_processor
+    def inject_global_counts():
+        from flask_login import current_user
+        from app.models import Message, IssuedBook
+        from datetime import datetime
+        if current_user.is_authenticated:
+            unread_chat_count = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
+            due_books_count = 0
+            if current_user.role == 'student':
+                due_books_count = IssuedBook.query.filter_by(
+                    user_id=current_user.id, status='issued'
+                ).filter(IssuedBook.due_date < datetime.utcnow()).count()
+            return dict(unread_chat_count=unread_chat_count, due_books_count=due_books_count)
+        return dict(unread_chat_count=0, due_books_count=0)
+
     # Create database tables and handle migrations (Original Style)
     with app.app_context():
         db.create_all()
