@@ -166,6 +166,26 @@ def create_app(config_name='development'):
                 if not cursor.fetchone():
                     cursor.execute("ALTER TABLE users ADD COLUMN last_active_at TIMESTAMP NULL;")
                     app.logger.info("Added last_active_at column to PostgreSQL.")
+
+                # Check if image_url exists in books table
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='books' AND column_name='image_url';
+                """)
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE books ADD COLUMN image_url TEXT NULL;")
+                    app.logger.info("Added image_url column to PostgreSQL.")
+
+                # Check if image_public_id exists in books table
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='books' AND column_name='image_public_id';
+                """)
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE books ADD COLUMN image_public_id VARCHAR(255) NULL;")
+                    app.logger.info("Added image_public_id column to PostgreSQL.")
                     
                 conn.close()
             except Exception as e:
@@ -192,6 +212,19 @@ def create_app(config_name='development'):
 
             try:
                 db.session.execute(text("ALTER TABLE users ADD COLUMN last_active_at DATETIME NULL"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            # Fallback for books table
+            try:
+                db.session.execute(text("ALTER TABLE books ADD COLUMN image_url TEXT NULL"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+            try:
+                db.session.execute(text("ALTER TABLE books ADD COLUMN image_public_id VARCHAR(255) NULL"))
                 db.session.commit()
             except Exception:
                 db.session.rollback()
