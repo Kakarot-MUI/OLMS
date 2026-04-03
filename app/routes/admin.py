@@ -49,7 +49,7 @@ def add_book():
             title=form.title.data,
             author=form.author.data,
             category=form.category.data,
-            total_copies=form.total_copies.data,
+            total_copies=form.total_copies.data
         )
         flash('Book added successfully!', 'success')
         return redirect(url_for('admin.books'))
@@ -69,7 +69,7 @@ def edit_book(book_id):
                 title=form.title.data,
                 author=form.author.data,
                 category=form.category.data,
-                total_copies=form.total_copies.data,
+                total_copies=form.total_copies.data
             )
             flash('Book updated successfully!', 'success')
             return redirect(url_for('admin.books'))

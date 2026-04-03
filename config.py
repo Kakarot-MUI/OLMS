@@ -19,7 +19,9 @@ class Config:
     DB_PORT = os.environ.get('DB_PORT', '3306')
     DB_NAME = os.environ.get('DB_NAME', 'olms_db')
 
-    SQLALCHEMY_DATABASE_URI = (
+    # Use Neon PostgreSQL by default if no DATABASE_URL is set in environment
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL',
         f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
@@ -36,22 +38,12 @@ class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
 
-    # Support Render/Railway DATABASE_URL or fall back to MySQL config or SQLite
-    _db_url = os.environ.get('DATABASE_URL', '')
+    # Cloudinary Configuration
+    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dlew4kxm7')
+    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '315187185855881')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', 'ROVV6S1fEiJ0midZKLZbbf6c_pQ')
 
-    # Render uses postgres:// but SQLAlchemy requires postgresql://
-    if _db_url.startswith('postgres://'):
-        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
-
-    SQLALCHEMY_DATABASE_URI = (
-        _db_url
-        if _db_url
-        else (
-            Config.SQLALCHEMY_DATABASE_URI
-            if os.environ.get('DB_HOST')
-            else f"sqlite:///{os.path.join(basedir, 'olms.db')}"
-        )
-    )
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
 
 class TestingConfig(Config):

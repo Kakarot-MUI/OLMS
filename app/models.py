@@ -105,6 +105,8 @@ class Book(db.Model):
     category = db.Column(db.String(100), nullable=False, index=True)
     total_copies = db.Column(db.Integer, nullable=False, default=1)
     available_copies = db.Column(db.Integer, nullable=False, default=1)
+    image_url = db.Column(db.String(500), nullable=True)  # Cloudinary secure URL
+    image_public_id = db.Column(db.String(255), nullable=True)  # For deleting/replacing images
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     # Relationships

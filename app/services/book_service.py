@@ -1,5 +1,8 @@
 from app import db
 from app.models import Book
+import cloudinary
+import cloudinary.uploader
+from flask import current_app
 
 
 def get_all_books():
@@ -13,13 +16,22 @@ def get_book_by_id(book_id):
 
 
 def create_book(title, author, category, total_copies):
-    """Create a new book."""
+    """Create a new book with automated cover fetching."""
+    # Automatically get cover URL from Open Library
+    image_url = get_book_cover_url(title, author)
+    image_public_id = None
+
+    if False: # Removed manual upload logic
+        pass
+
     book = Book(
         title=title.strip(),
         author=author.strip(),
         category=category.strip(),
         total_copies=total_copies,
         available_copies=total_copies,
+        image_url=image_url,
+        image_public_id=image_public_id
     )
     db.session.add(book)
     db.session.commit()
@@ -27,7 +39,7 @@ def create_book(title, author, category, total_copies):
 
 
 def update_book(book_id, title, author, category, total_copies):
-    """Update an existing book."""
+    """Update an existing book with automated cover refresh."""
     book = Book.query.get_or_404(book_id)
     old_total = book.total_copies
     difference = total_copies - old_total
@@ -38,6 +50,11 @@ def update_book(book_id, title, author, category, total_copies):
             f'Cannot reduce total copies below the number currently issued. '
             f'Currently {old_total - book.available_copies} copies are issued.'
         )
+
+    # Update cover if title or author changed (and it's currently an automated one)
+    if book.title != title.strip() or book.author != author.strip():
+        if not book.image_public_id:  # Only auto-update if not a manual upload (which shouldn't exist anymore)
+            book.image_url = get_book_cover_url(title, author)
 
     book.title = title.strip()
     book.author = author.strip()
@@ -63,6 +80,20 @@ def delete_book(book_id):
     SavedBook.query.filter_by(book_id=book.id).delete()
     Review.query.filter_by(book_id=book.id).delete()
     
+    # Delete image from Cloudinary
+    if book.image_public_id:
+        try:
+            # Configure Cloudinary for deletion
+            cloudinary.config(
+                cloud_name=current_app.config['CLOUDINARY_CLOUD_NAME'],
+                api_key=current_app.config['CLOUDINARY_API_KEY'],
+                api_secret=current_app.config['CLOUDINARY_API_SECRET'],
+                secure=True
+            )
+            cloudinary.uploader.destroy(book.image_public_id)
+        except Exception:
+            pass
+
     db.session.delete(book)
     db.session.commit()
 
@@ -158,16 +189,12 @@ def get_book_average_rating(book_id):
 
 def get_book_cover_url(book_title, book_author):
     """
-    Returns a URL for the book cover using Open Library.
-    If no ISBN is available, it uses the Search API.
+    Returns a URL for the book cover using Open Library's Search API pattern.
     """
     import urllib.parse
-    # Create a safe query string
-    query = f"{book_title} {book_author}"
-    safe_query = urllib.parse.quote(query)
-    # Using Open Library Cover API via Author/Title search search
-    # This is a guestimate URL that Open Library supports for many books
-    # Format: https://covers.openlibrary.org/b/title/{title}-{size}.jpg
-    # Actually, it's better to use the search-based lookup if possible, 
-    # but for simplicity and speed, we return a URL that will be handled by the frontend.
-    return f"https://covers.openlibrary.org/b/title/{urllib.parse.quote(book_title.lower())}-M.jpg"
+    # Open Library has a neat trick where you can search by title and it often 
+    # redirects to the correct cover if you use this specific URL pattern.
+    # We clean the title to ensure it's URL-safe.
+    clean_title = urllib.parse.quote(book_title.strip().lower())
+    # Size 'M' for medium, 'L' for large.
+    return f"https://covers.openlibrary.org/b/title/{clean_title}-M.jpg"

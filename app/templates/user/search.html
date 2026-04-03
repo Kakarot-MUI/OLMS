@@ -81,8 +81,13 @@
                         'technology' if book.category|lower in ['technology','programming','computing','computer
                         science'] else
                         'default' %}
-                        <div class="book-cover {{ cat_class }}">
+                        <div class="book-cover {{ cat_class }}" style="overflow: hidden; position: relative;">
+                            {% if book.image_url %}
+                            <img src="{{ book.image_url }}" alt="{{ book.title }}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
                             <i class="bi bi-journal-bookmark"></i>
+                            {% endif %}
                         </div>
                         <div class="book-body">
                             <div class="book-title">{{ book.title }}</div>
