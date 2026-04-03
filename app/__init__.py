@@ -41,6 +41,9 @@ def create_app(config_name='default'):
     from app.routes.user import user_bp
     app.register_blueprint(user_bp)
 
+    from app.routes.errors import errors_bp
+    app.register_blueprint(errors_bp)
+
     # Health Check for Render
     @app.route('/health')
     def health_check():
@@ -72,6 +75,9 @@ def create_app(config_name='default'):
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+        
+        # Session Cleanup to ensure Render requests start fresh
+        db.session.remove()
 
     return app
 
