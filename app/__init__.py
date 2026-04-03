@@ -1,105 +1,48 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt
+from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
-from config import config_by_name
+from config import config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
-bcrypt = Bcrypt()
+mail = Mail()
 csrf = CSRFProtect()
 
-login_manager.login_view = 'auth.index'
-login_manager.login_message = 'Please log in to access this page.'
-login_manager.login_message_category = 'warning'
-
-
-def create_app(config_name='development'):
-    """Application factory."""
+def create_app(config_name='default'):
     app = Flask(__name__)
-    app.config.from_object(config_by_name[config_name])
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
 
-    # VAPID Keys for Web Push Notifications
-    import os
-    app.config['VAPID_PUBLIC_KEY'] = os.environ.get('VAPID_PUBLIC_KEY')
-    app.config['VAPID_PRIVATE_KEY'] = os.environ.get('VAPID_PRIVATE_KEY')
-    app.config['VAPID_CLAIMS'] = {
-        "sub": "mailto:admin@smartlibrary.com"
-    }
-
-    # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
-    bcrypt.init_app(app)
+    mail.init_app(app)
     csrf.init_app(app)
 
-    # Import models so they are registered
-    from app import models  # noqa: F401
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message_category = 'info'
 
-    # Register blueprints
-    from app.routes.auth import auth_bp
-    from app.routes.admin import admin_bp
-    from app.routes.user import user_bp
-    from app.routes.errors import errors_bp
-    from app.routes.push import bp as push_bp
+    from app.routes.main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
 
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(errors_bp)
-    app.register_blueprint(push_bp)
+    from app.routes.auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
 
-    # Activity Tracking (Online status)
-    @app.before_request
-    def update_last_active():
-        from flask_login import current_user
-        from datetime import datetime
-        if current_user.is_authenticated:
-            current_user.last_active_at = datetime.utcnow()
-            db.session.commit()
+    from app.routes.admin import admin as admin_blueprint
+    app.register_blueprint(admin_blueprint)
 
-    # Global variables for templates (Notifications)
-    @app.context_processor
-    def inject_notifications():
-        from flask_login import current_user
-        from datetime import datetime, timedelta
-        from app.models import Message, IssuedBook
-        
-        unread_chat_count = 0
-        due_books_count = 0
-        
-        if current_user.is_authenticated:
-            # Unread messages sent to the current user
-            unread_chat_count = Message.query.filter_by(
-                receiver_id=current_user.id, 
-                is_read=False
-            ).count()
-            
-            # For students: count books that are due in exactly or less than 3 days, or overdue
-            if current_user.role == 'user':
-                warning_date = datetime.utcnow() + timedelta(days=3)
-                due_books_count = IssuedBook.query.filter(
-                    IssuedBook.user_id == current_user.id,
-                    IssuedBook.status == 'issued',
-                    IssuedBook.due_date <= warning_date
-                ).count()
-                
-        from app.models import User
-        admin_is_online = False
-        if current_user.is_authenticated and current_user.role == 'user':
-            admin = User.query.filter_by(role='admin').first()
-            if admin:
-                admin_is_online = admin.is_online
-                
-        return dict(
-            unread_chat_count=unread_chat_count,
-            due_books_count=due_books_count,
-            admin_is_online=admin_is_online
-        )
+    from app.routes.user import user as user_blueprint
+    app.register_blueprint(user_blueprint)
+
+    # Health Check for Render
+    @app.route('/health')
+    def health_check():
+        return {"status": "healthy", "database": "connected"}, 200
 
     # Serve Service Worker at root level for Web Push scope
     @app.route('/sw.js')
@@ -112,125 +55,60 @@ def create_app(config_name='development'):
         db.create_all()
         _create_default_admin()
         
-        # Auto-migrate new columns for existing production databases (PostgreSQL/MySQL/SQLite compat)
-        import os
+        # Optimized Super-Check for PostgreSQL Schema (Render Speed Fix)
         from sqlalchemy import text
-        
         db_url = os.environ.get('DATABASE_URL', '')
         if db_url.startswith('postgres'):
             import psycopg2
-            # Connect directly to perform robust PostgreSQL schema alterations
-            # psycopg2 is required for Render deployments to avoid transaction block errors on duplicate columns
             try:
-                # Need to use the raw postgres:// URL for psycopg2 if that's what's in the env
                 conn = psycopg2.connect(db_url.replace('postgresql://', 'postgres://'))
                 conn.autocommit = True
                 cursor = conn.cursor()
                 
-                # Check if fine_amount exists
+                # Check for all missing columns in one go (Super-Check)
                 cursor.execute("""
-                    SELECT column_name 
+                    SELECT table_name, column_name 
                     FROM information_schema.columns 
-                    WHERE table_name='issued_books' AND column_name='fine_amount';
+                    WHERE table_name IN ('issued_books', 'users', 'books');
                 """)
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0;")
-                    app.logger.info("Added fine_amount column to PostgreSQL.")
-
-                # Check if fine_paid exists
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='issued_books' AND column_name='fine_paid';
-                """)
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE;")
-                    app.logger.info("Added fine_paid column to PostgreSQL.")
-                    
-                # Check if notified_due_soon exists
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='issued_books' AND column_name='notified_due_soon';
-                """)
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE issued_books ADD COLUMN notified_due_soon BOOLEAN NOT NULL DEFAULT FALSE;")
-                    app.logger.info("Added notified_due_soon column to PostgreSQL.")
+                existing_cols = cursor.fetchall()
+                col_map = {(t, c) for t, c in existing_cols}
                 
-                # Check if last_active_at exists in users table
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='users' AND column_name='last_active_at';
-                """)
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE users ADD COLUMN last_active_at TIMESTAMP NULL;")
-                    app.logger.info("Added last_active_at column to PostgreSQL.")
-
-                # Check if image_url exists in books table
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='books' AND column_name='image_url';
-                """)
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE books ADD COLUMN image_url TEXT NULL;")
-                    app.logger.info("Added image_url column to PostgreSQL.")
-
-                # Check if image_public_id exists in books table
-                cursor.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='books' AND column_name='image_public_id';
-                """)
-                if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE books ADD COLUMN image_public_id VARCHAR(255) NULL;")
-                    app.logger.info("Added image_public_id column to PostgreSQL.")
-                    
+                # List of needed columns: (table, col, sql_type)
+                needed = [
+                    ('issued_books', 'fine_amount', 'FLOAT NOT NULL DEFAULT 0.0'),
+                    ('issued_books', 'fine_paid', 'BOOLEAN NOT NULL DEFAULT FALSE'),
+                    ('issued_books', 'notified_due_soon', 'BOOLEAN NOT NULL DEFAULT FALSE'),
+                    ('users', 'last_active_at', 'TIMESTAMP NULL'),
+                    ('books', 'image_url', 'TEXT NULL'),
+                    ('books', 'image_public_id', 'VARCHAR(255) NULL')
+                ]
+                
+                for table, col, sql_type in needed:
+                    if (table, col) not in col_map:
+                        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {col} {sql_type};")
+                        app.logger.info(f"Fixed missing column: {table}.{col}")
+                
                 conn.close()
             except Exception as e:
-                app.logger.error(f"PostgreSQL Auto-Migration Error: {e}")
+                app.logger.error(f"Postgres Speed-Migration Error: {e}")
         else:
             # Fallback for local SQLite/MySQL
-            try:
-                db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_amount FLOAT NOT NULL DEFAULT 0.0"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
-
-            try:
-                db.session.execute(text("ALTER TABLE issued_books ADD COLUMN fine_paid BOOLEAN NOT NULL DEFAULT FALSE"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
-                
-            try:
-                db.session.execute(text("ALTER TABLE issued_books ADD COLUMN notified_due_soon BOOLEAN NOT NULL DEFAULT FALSE"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
-
-            try:
-                db.session.execute(text("ALTER TABLE users ADD COLUMN last_active_at DATETIME NULL"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
-
-            # Fallback for books table
-            try:
-                db.session.execute(text("ALTER TABLE books ADD COLUMN image_url TEXT NULL"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
-
-            try:
-                db.session.execute(text("ALTER TABLE books ADD COLUMN image_public_id VARCHAR(255) NULL"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
+            for table, col, sql_type in [
+                ('issued_books', 'fine_amount', 'FLOAT NOT NULL DEFAULT 0.0'),
+                ('issued_books', 'fine_paid', 'BOOLEAN NOT NULL DEFAULT FALSE'),
+                ('issued_books', 'notified_due_soon', 'BOOLEAN NOT NULL DEFAULT FALSE'),
+                ('users', 'last_active_at', 'DATETIME NULL'),
+                ('books', 'image_url', 'TEXT NULL'),
+                ('books', 'image_public_id', 'VARCHAR(255) NULL')
+            ]:
+                try:
+                    db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {sql_type}"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
 
     return app
-
 
 def _create_default_admin():
     """Create a default admin user if none exists."""
