@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
 
     @property
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role and self.role.strip().lower() == 'admin'
 
     @property
     def is_active_user(self):

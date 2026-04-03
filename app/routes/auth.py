@@ -67,7 +67,7 @@ def student_login():
             flash('Invalid email or password.', 'danger')
             return render_template('auth/student_login.html', form=form)
 
-        if user.role == 'admin':
+        if user.role and user.role.strip().lower() == 'admin':
             flash('Admin accounts must use the Admin login page.', 'warning')
             return render_template('auth/student_login.html', form=form)
 
@@ -101,7 +101,7 @@ def admin_login():
             flash('Invalid email or password.', 'danger')
             return render_template('auth/admin_login.html', form=form)
 
-        if user.role != 'admin':
+        if not user.role or user.role.strip().lower() != 'admin':
             flash('This login is for administrators only.', 'warning')
             return render_template('auth/admin_login.html', form=form)
 
