@@ -27,17 +27,15 @@ def create_app(config_name='default'):
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
 
-    from app.routes.main import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    # Register Blueprints
+    from app.routes.auth import auth_bp
+    app.register_blueprint(auth_bp)
 
-    from app.routes.auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint)
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp)
 
-    from app.routes.admin import admin as admin_blueprint
-    app.register_blueprint(admin_blueprint)
-
-    from app.routes.user import user as user_blueprint
-    app.register_blueprint(user_blueprint)
+    from app.routes.user import user_bp
+    app.register_blueprint(user_bp)
 
     # Health Check for Render
     @app.route('/health')
