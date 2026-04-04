@@ -5,13 +5,13 @@ from dotenv import load_dotenv
 # Load from .env if running from local pushing to remote
 load_dotenv('.env')
 
-# Default to the platform's injected DATABASE_URL
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
+# Import exact fallback DB logic from config
+from config import ProductionConfig
+DATABASE_URL = ProductionConfig._db_url
 
 def run_migration():
     if not DATABASE_URL:
-        print("Error: No DATABASE_URL found in environment variables.")
-        print("Ensure you export DATABASE_URL='postgres://...' before running this script.")
+        print("Error: No DATABASE_URL found.")
         return
 
     print(f"Connecting to PostgreSQL Database to add Publication field...")
