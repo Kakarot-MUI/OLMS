@@ -9,6 +9,7 @@ class Config:
     """Base configuration."""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-me')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
     WTF_CSRF_ENABLED = True
     BOOKS_PER_PAGE = int(os.environ.get('BOOKS_PER_PAGE', 12))
     ISSUE_DURATION_DAYS = int(os.environ.get('ISSUE_DURATION_DAYS', 14))
