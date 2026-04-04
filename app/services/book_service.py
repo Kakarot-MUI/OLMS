@@ -15,14 +15,30 @@ def get_book_by_id(book_id):
     return Book.query.get_or_404(book_id)
 
 
-def create_book(title, author, category, total_copies):
-    """Create a new book with automated cover fetching."""
-    # Automatically get cover URL from Open Library
-    image_url = get_book_cover_url(title, author)
+def create_book(title, author, category, total_copies, cover_image=None):
+    """Create a new book with automated cover fetching or manual upload."""
+    image_url = None
     image_public_id = None
 
-    if False: # Removed manual upload logic
-        pass
+    if cover_image:
+        cloudinary.config(
+            cloud_name=current_app.config['CLOUDINARY_CLOUD_NAME'],
+            api_key=current_app.config['CLOUDINARY_API_KEY'],
+            api_secret=current_app.config['CLOUDINARY_API_SECRET'],
+            secure=True
+        )
+        upload_result = cloudinary.uploader.upload(
+            cover_image,
+            folder="olms_book_covers",
+            crop="fill",
+            width=800,
+            height=1200
+        )
+        image_url = upload_result.get('secure_url')
+        image_public_id = upload_result.get('public_id')
+
+    if not image_url:
+        image_url = get_book_cover_url(title, author)
 
     book = Book(
         title=title.strip(),
@@ -38,8 +54,8 @@ def create_book(title, author, category, total_copies):
     return book
 
 
-def update_book(book_id, title, author, category, total_copies):
-    """Update an existing book with automated cover refresh."""
+def update_book(book_id, title, author, category, total_copies, cover_image=None):
+    """Update an existing book with manual upload override or automated cover refresh."""
     book = Book.query.get_or_404(book_id)
     old_total = book.total_copies
     difference = total_copies - old_total
@@ -51,9 +67,30 @@ def update_book(book_id, title, author, category, total_copies):
             f'Currently {old_total - book.available_copies} copies are issued.'
         )
 
-    # Update cover if title or author changed (and it's currently an automated one)
-    if book.title != title.strip() or book.author != author.strip():
-        if not book.image_public_id:  # Only auto-update if not a manual upload (which shouldn't exist anymore)
+    if cover_image:
+        cloudinary.config(
+            cloud_name=current_app.config['CLOUDINARY_CLOUD_NAME'],
+            api_key=current_app.config['CLOUDINARY_API_KEY'],
+            api_secret=current_app.config['CLOUDINARY_API_SECRET'],
+            secure=True
+        )
+        if book.image_public_id:
+            try:
+                cloudinary.uploader.destroy(book.image_public_id)
+            except Exception:
+                pass
+        
+        upload_result = cloudinary.uploader.upload(
+            cover_image,
+            folder="olms_book_covers",
+            crop="fill",
+            width=800,
+            height=1200
+        )
+        book.image_url = upload_result.get('secure_url')
+        book.image_public_id = upload_result.get('public_id')
+    elif book.title != title.strip() or book.author != author.strip():
+        if not book.image_public_id:  # Only auto-update if not a manual upload
             book.image_url = get_book_cover_url(title, author)
 
     book.title = title.strip()

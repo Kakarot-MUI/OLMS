@@ -11,7 +11,7 @@
                 <i class="bi bi-journal-plus text-primary"></i> {{ title }}
             </div>
             <div class="card-body">
-                <form method="POST" novalidate>
+                <form method="POST" enctype="multipart/form-data" novalidate>
                     {{ form.hidden_tag() }}
 
                     <div class="mb-3">
@@ -49,6 +49,15 @@
                             <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.cover_image.label(class="form-label") }}
+                        {{ form.cover_image(class="form-control" + (" is-invalid" if form.cover_image.errors else ""), id="book-cover-image", accept="image/*") }}
+                        <div class="form-text">Choose an image from gallery to upload a custom cover. If left blank, we will try to fetch it automatically.</div>
+                        {% for error in form.cover_image.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
                     </div>
 
                     <div class="d-flex gap-2 mt-2">

@@ -6,6 +6,7 @@ from wtforms import (
 from wtforms.validators import (
     DataRequired, Email, EqualTo, Length, NumberRange, ValidationError, Optional
 )
+from flask_wtf.file import FileField, FileAllowed
 from app.models import User
 
 
@@ -97,6 +98,9 @@ class BookForm(FlaskForm):
     total_copies = IntegerField('Total Copies', validators=[
         DataRequired(message='Total copies is required.'),
         NumberRange(min=1, message='Must have at least 1 copy.')
+    ])
+    cover_image = FileField('Upload Cover Image (Optional)', validators=[
+        FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')
     ])
     submit = SubmitField('Save Book')
 

@@ -45,14 +45,20 @@ def add_book():
     """Add a new book."""
     form = BookForm()
     if form.validate_on_submit():
-        book_service.create_book(
-            title=form.title.data,
-            author=form.author.data,
-            category=form.category.data,
-            total_copies=form.total_copies.data
-        )
-        flash('Book added successfully!', 'success')
-        return redirect(url_for('admin.books'))
+        try:
+            image_file = form.cover_image.data if form.cover_image.data and form.cover_image.data.filename else None
+            book_service.create_book(
+                title=form.title.data,
+                author=form.author.data,
+                category=form.category.data,
+                total_copies=form.total_copies.data,
+                cover_image=image_file
+            )
+            flash('Book added successfully!', 'success')
+            return redirect(url_for('admin.books'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred while handling the book cover API or database: {e}", 'danger')
     return render_template('admin/book_form.html', form=form, title='Add Book')
 
 
@@ -64,17 +70,22 @@ def edit_book(book_id):
     form = BookForm(obj=book)
     if form.validate_on_submit():
         try:
+            image_file = form.cover_image.data if form.cover_image.data and form.cover_image.data.filename else None
             book_service.update_book(
                 book_id=book_id,
                 title=form.title.data,
                 author=form.author.data,
                 category=form.category.data,
-                total_copies=form.total_copies.data
+                total_copies=form.total_copies.data,
+                cover_image=image_file
             )
             flash('Book updated successfully!', 'success')
             return redirect(url_for('admin.books'))
         except ValueError as e:
             flash(str(e), 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred while handling the book cover API or database: {e}", 'danger')
     return render_template('admin/book_form.html', form=form, title='Edit Book', book=book)
 
 
