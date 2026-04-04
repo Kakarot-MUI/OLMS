@@ -95,6 +95,10 @@ class BookForm(FlaskForm):
         DataRequired(message='Category is required.'),
         Length(min=1, max=100)
     ])
+    publication = StringField('Publication', validators=[
+        DataRequired(message='Publication name is required.'),
+        Length(min=1, max=255)
+    ])
     total_copies = IntegerField('Total Copies', validators=[
         DataRequired(message='Total copies is required.'),
         NumberRange(min=1, message='Must have at least 1 copy.')

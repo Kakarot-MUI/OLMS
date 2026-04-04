@@ -15,7 +15,7 @@ def get_book_by_id(book_id):
     return Book.query.get_or_404(book_id)
 
 
-def create_book(title, author, category, total_copies, cover_image=None):
+def create_book(title, author, category, publication, total_copies, cover_image=None):
     """Create a new book with automated cover fetching or manual upload."""
     image_url = None
     image_public_id = None
@@ -44,6 +44,7 @@ def create_book(title, author, category, total_copies, cover_image=None):
         title=title.strip(),
         author=author.strip(),
         category=category.strip(),
+        publication=publication.strip(),
         total_copies=total_copies,
         available_copies=total_copies,
         image_url=image_url,
@@ -54,7 +55,7 @@ def create_book(title, author, category, total_copies, cover_image=None):
     return book
 
 
-def update_book(book_id, title, author, category, total_copies, cover_image=None):
+def update_book(book_id, title, author, category, publication, total_copies, cover_image=None):
     """Update an existing book with manual upload override or automated cover refresh."""
     book = Book.query.get_or_404(book_id)
     old_total = book.total_copies
@@ -96,6 +97,7 @@ def update_book(book_id, title, author, category, total_copies, cover_image=None
     book.title = title.strip()
     book.author = author.strip()
     book.category = category.strip()
+    book.publication = publication.strip()
     book.total_copies = total_copies
     book.available_copies = new_available
     db.session.commit()

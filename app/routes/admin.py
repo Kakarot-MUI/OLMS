@@ -51,6 +51,7 @@ def add_book():
                 title=form.title.data,
                 author=form.author.data,
                 category=form.category.data,
+                publication=form.publication.data,
                 total_copies=form.total_copies.data,
                 cover_image=image_file
             )
@@ -76,6 +77,7 @@ def edit_book(book_id):
                 title=form.title.data,
                 author=form.author.data,
                 category=form.category.data,
+                publication=form.publication.data,
                 total_copies=form.total_copies.data,
                 cover_image=image_file
             )

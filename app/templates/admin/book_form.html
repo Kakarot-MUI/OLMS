@@ -33,7 +33,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             {{ form.category.label(class="form-label") }}
                             {{ form.category(class="form-control" + (" is-invalid" if form.category.errors else ""),
                             placeholder="e.g. Fiction, Science", id="book-category") }}
@@ -41,7 +41,15 @@
                             <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            {{ form.publication.label(class="form-label") }}
+                            {{ form.publication(class="form-control" + (" is-invalid" if form.publication.errors else ""),
+                            placeholder="e.g. Penguin, O'Reilly", id="book-publication") }}
+                            {% for error in form.publication.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
                             {{ form.total_copies.label(class="form-label") }}
                             {{ form.total_copies(class="form-control" + (" is-invalid" if form.total_copies.errors else
                             ""), placeholder="Number of copies", id="book-copies", min=1) }}
