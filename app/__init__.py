@@ -36,10 +36,10 @@ def create_app(config_name='default'):
     app.register_blueprint(auth_bp)
 
     from app.routes.admin import admin_bp
-    app.register_blueprint(admin_bp)
+    app.register_blueprint(admin_bp, url_prefix='/admin')
 
     from app.routes.user import user_bp
-    app.register_blueprint(user_bp)
+    app.register_blueprint(user_bp, url_prefix='/student')
 
     from app.routes.errors import errors_bp
     app.register_blueprint(errors_bp)
