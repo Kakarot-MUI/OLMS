@@ -6,6 +6,22 @@ from app import db
 
 auth_bp = Blueprint('auth', __name__)
 
+@auth_bp.route('/__fix_db')
+def migrate_remote_db():
+    from sqlalchemy import text
+    from flask import jsonify
+    try:
+        # Check if it exists before adding to prevent 500
+        result = db.session.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='books' and column_name='publication'"))
+        if not result.fetchone():
+            db.session.execute(text("ALTER TABLE books ADD COLUMN publication VARCHAR(255) NOT NULL DEFAULT 'Unknown';"))
+            db.session.commit()
+            return jsonify({'success': True, 'msg': 'Column injected.'})
+        return jsonify({'success': True, 'msg': 'Column already exists.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
 
 @auth_bp.route('/')
 def index():
