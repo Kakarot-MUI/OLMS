@@ -159,6 +159,11 @@ a:hover {
     color: var(--primary-hover);
 }
 
+.hover-primary:hover {
+    color: var(--primary) !important;
+    text-decoration: underline !important;
+}
+
 /* ── Navbar (User) ────────────────────────────────────────────── */
 .navbar-olms {
     background: linear-gradient(135deg, var(--secondary) 0%, #334155 100%);

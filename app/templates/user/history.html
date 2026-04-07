@@ -34,6 +34,7 @@
                     <th>Due Date</th>
                     <th>Returned On</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,13 +53,22 @@
                             </button>
                         </div>
                     </td>
-                    <td><strong>{{ issue.book.title }}</strong></td>
+                    <td>
+                        <a href="{{ url_for('user.book_detail', book_id=issue.book.id) }}" class="text-decoration-none text-dark fw-bold hover-primary">
+                            {{ issue.book.title }}
+                        </a>
+                    </td>
                     <td>{{ issue.book.author }}</td>
                     <td>{{ issue.issue_date.strftime('%b %d, %Y') }}</td>
                     <td>{{ issue.due_date.strftime('%b %d, %Y') }}</td>
                     <td>{{ issue.return_date.strftime('%b %d, %Y') if issue.return_date else '—' }}</td>
                     <td>
                         <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('user.book_detail', book_id=issue.book.id) }}#review-section" class="btn btn-sm btn-outline-primary py-1 px-3" style="border-radius:20px; font-size: 0.75rem;">
+                            <i class="bi bi-star-fill me-1"></i> Rate
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
