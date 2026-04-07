@@ -83,6 +83,15 @@
                             style="background: var(--bg-body, #f8fafc); border-radius:var(--radius-sm); color: var(--text-primary);">
                             <div class="text-muted"
                                 style="font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; font-weight:600;">
+                                Publication</div>
+                            <div class="fw-700">{{ book.publication }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3"
+                            style="background: var(--bg-body, #f8fafc); border-radius:var(--radius-sm); color: var(--text-primary);">
+                            <div class="text-muted"
+                                style="font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; font-weight:600;">
                                 Availability</div>
                             <div class="fw-700">{{ book.available_copies }} of {{ book.total_copies }} copies available
                             </div>
