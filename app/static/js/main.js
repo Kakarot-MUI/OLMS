@@ -183,6 +183,9 @@ async function subscribeUserToPush() {
         });
 
         console.log('User is subscribed to Push Notifications.');
+        
+        // Show a simple visual confirmation since the browser popup only appears once
+        alert('🔔 Notifications Enabled! You will now receive alerts for messages and due books.');
 
     } catch (error) {
         console.error('Failed to subscribe the user: ', error);
