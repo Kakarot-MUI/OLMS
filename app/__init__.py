@@ -50,7 +50,7 @@ def create_app(config_name='default'):
     # Health Check for Render
     @app.route('/health')
     def health_check():
-        return {"status": "healthy", "database": "connected"}, 200
+        return {"status": "healthy", "database": "connected", "v": "push_restored_2"}, 200
 
     # Serve Service Worker at root level for Web Push scope
     @app.route('/sw.js')
@@ -78,12 +78,19 @@ def create_app(config_name='default'):
         db.create_all()
         _create_default_admin()
         
-        # Simple Migrations (Original Style)
+        # Simple Migrations (Fail-Safe for missing columns)
         needed_cols = [
+            ('books', 'access_number', 'VARCHAR(50) NULL'),
+            ('books', 'publication', "VARCHAR(255) NOT NULL DEFAULT 'Unknown'"),
             ('issued_books', 'fine_amount', 'FLOAT NOT NULL DEFAULT 0.0'),
             ('issued_books', 'fine_paid', 'BOOLEAN NOT NULL DEFAULT FALSE'),
             ('issued_books', 'notified_due_soon', 'BOOLEAN NOT NULL DEFAULT FALSE'),
-            ('users', 'last_active_at', 'DATETIME NULL'),
+            ('users', 'last_active_at', 'TIMESTAMP NULL' if 'postgresql' in str(db.engine.url) else 'DATETIME NULL'),
+            ('users', 'roll_number', 'VARCHAR(50) NULL'),
+            ('users', 'phone', 'VARCHAR(20) NULL'),
+            ('users', 'division', 'VARCHAR(20) NULL'),
+            ('users', 'department', 'VARCHAR(100) NULL'),
+            ('users', 'semester', 'INTEGER NULL'),
             ('books', 'image_url', 'TEXT NULL'),
             ('books', 'image_public_id', 'VARCHAR(255) NULL')
         ]
