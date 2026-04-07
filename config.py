@@ -14,6 +14,11 @@ class Config:
     BOOKS_PER_PAGE = int(os.environ.get('BOOKS_PER_PAGE', 12))
     ISSUE_DURATION_DAYS = int(os.environ.get('ISSUE_DURATION_DAYS', 14))
 
+    # Web Push Notification VAPID Keys
+    VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', 'BAyj830BVSz5keR5W8QVvPApqsrN_uGjGhcxCqteZncy0kOVf4jCU3r87Z72KjLoqr9b8xnE9QoeGnpvcPUaTRU')
+    VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', 'EGEp7IMGYi2PyxSPPnS0gMxYdWlo57PHeUgt1_kl7Oo')
+    VAPID_CLAIM_EMAIL = os.environ.get('VAPID_CLAIM_EMAIL', 'admin@olms.com')
+
     DB_USER = os.environ.get('DB_USER', 'root')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
     DB_HOST = os.environ.get('DB_HOST', 'localhost')

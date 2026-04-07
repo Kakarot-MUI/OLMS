@@ -44,6 +44,9 @@ def create_app(config_name='default'):
     from app.routes.errors import errors_bp
     app.register_blueprint(errors_bp)
 
+    from app.routes.push import bp as push_bp
+    app.register_blueprint(push_bp)
+
     # Health Check for Render
     @app.route('/health')
     def health_check():
