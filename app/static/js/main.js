@@ -139,7 +139,7 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-async function subscribeUserToPush() {
+async function subscribeUserToPush(isSilent = false) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         console.warn('Push messaging is not supported.');
         return;
@@ -184,8 +184,10 @@ async function subscribeUserToPush() {
 
         console.log('User is subscribed to Push Notifications.');
         
-        // Show a simple visual confirmation since the browser popup only appears once
-        alert('🔔 Notifications Enabled! You will now receive alerts for messages and due books.');
+        // Show a simple visual confirmation only if NOT called silently on page load
+        if (!isSilent) {
+            alert('🔔 Notifications Enabled! You will now receive alerts for messages and due books.');
+        }
 
     } catch (error) {
         console.error('Failed to subscribe the user: ', error);
@@ -196,7 +198,7 @@ async function subscribeUserToPush() {
 document.addEventListener('DOMContentLoaded', function () {
     if ('Notification' in window && Notification.permission === 'granted') {
         // Automatically sync subscription if they already granted permission in the past
-        subscribeUserToPush();
+        subscribeUserToPush(true);
     }
 
     // Explicitly bind the click event to any button with the enable-push-btn class
