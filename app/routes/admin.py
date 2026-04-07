@@ -36,7 +36,15 @@ def books():
     search_query = request.args.get('q', '').strip()
     
     pagination = book_service.search_books(query=search_query, page=page, per_page=15)
-    return render_template('admin/books.html', pagination=pagination, search_query=search_query)
+    
+    # Calculate sum of all copies for the header
+    from sqlalchemy import func
+    total_copies_sum = db.session.query(func.sum(Book.total_copies)).scalar() or 0
+    
+    return render_template('admin/books.html', 
+                         pagination=pagination, 
+                         search_query=search_query,
+                         total_copies_count=int(total_copies_sum))
 
 
 @admin_bp.route('/books/add', methods=['GET', 'POST'])

@@ -5,7 +5,11 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <p class="text-muted mb-0">{{ pagination.total }} books in library</p>
+    <p class="text-muted mb-0">
+        <span class="fw-bold text-primary">{{ total_copies_count }}</span> Total Books 
+        <span class="mx-2">|</span> 
+        <span class="fw-bold">{{ pagination.total }}</span> Unique Titles
+    </p>
 
     <!-- Search Form -->
     <form class="d-flex flex-grow-1" style="max-width: 400px;" method="GET" action="{{ url_for('admin.books') }}">

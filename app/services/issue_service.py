@@ -152,15 +152,17 @@ def get_user_issued_books(user_id):
 def get_dashboard_stats():
     """Get statistics for the admin dashboard."""
     from app.models import User, Book, IssuedBook
+    from sqlalchemy import func
 
-    total_books = Book.query.count()
+    # Count actual copies of all books
+    total_books = db.session.query(func.sum(Book.total_copies)).scalar() or 0
     total_users = User.query.filter_by(role='user').count()
     issued_count = IssuedBook.query.filter_by(status='issued').count()
     overdue_count = IssuedBook.query.filter_by(status='overdue').count()
     recent_books = Book.query.order_by(Book.created_at.desc()).limit(5).all()
 
     return {
-        'total_books': total_books,
+        'total_books': int(total_books),
         'total_users': total_users,
         'issued_count': issued_count,
         'overdue_count': overdue_count,
