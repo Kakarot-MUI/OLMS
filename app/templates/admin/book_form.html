@@ -24,6 +24,16 @@
                     </div>
 
                     <div class="mb-3">
+                        {{ form.access_number.label(class="form-label") }}
+                        {{ form.access_number(class="form-control" + (" is-invalid" if form.access_number.errors else ""),
+                        placeholder="e.g. ACC-1234", id="book-access-number") }}
+                        <div class="form-text">Unique identification number for the book.</div>
+                        {% for error in form.access_number.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
                         {{ form.author.label(class="form-label") }}
                         {{ form.author(class="form-control" + (" is-invalid" if form.author.errors else ""),
                         placeholder="Enter author name", id="book-author") }}

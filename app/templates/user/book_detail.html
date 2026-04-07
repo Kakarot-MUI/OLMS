@@ -111,8 +111,8 @@
                             style="background: var(--bg-body, #f8fafc); border-radius:var(--radius-sm); color: var(--text-primary);">
                             <div class="text-muted"
                                 style="font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; font-weight:600;">
-                                Book ID</div>
-                            <div class="fw-700">#{{ book.id }}</div>
+                                Book ID / Access #</div>
+                            <div class="fw-700">#{{ book.id }} {{ ' / ' + book.access_number if book.access_number }}</div>
                         </div>
                     </div>
                 </div>

@@ -15,7 +15,7 @@ def get_book_by_id(book_id):
     return Book.query.get_or_404(book_id)
 
 
-def create_book(title, author, category, publication, total_copies, cover_image=None):
+def create_book(title, author, category, publication, total_copies, access_number=None, cover_image=None):
     """Create a new book with automated cover fetching or manual upload."""
     image_url = None
     image_public_id = None
@@ -47,6 +47,7 @@ def create_book(title, author, category, publication, total_copies, cover_image=
         publication=publication.strip(),
         total_copies=total_copies,
         available_copies=total_copies,
+        access_number=access_number.strip() if access_number else None,
         image_url=image_url,
         image_public_id=image_public_id
     )
@@ -55,7 +56,7 @@ def create_book(title, author, category, publication, total_copies, cover_image=
     return book
 
 
-def update_book(book_id, title, author, category, publication, total_copies, cover_image=None):
+def update_book(book_id, title, author, category, publication, total_copies, access_number=None, cover_image=None):
     """Update an existing book with manual upload override or automated cover refresh."""
     book = Book.query.get_or_404(book_id)
     old_total = book.total_copies
@@ -100,6 +101,7 @@ def update_book(book_id, title, author, category, publication, total_copies, cov
     book.publication = publication.strip()
     book.total_copies = total_copies
     book.available_copies = new_available
+    book.access_number = access_number.strip() if access_number else None
     db.session.commit()
     return book
 
@@ -146,7 +148,8 @@ def search_books(query=None, category=None, page=1, per_page=12):
         q = q.filter(
             db.or_(
                 Book.title.ilike(search_term),
-                Book.author.ilike(search_term)
+                Book.author.ilike(search_term),
+                Book.access_number.ilike(search_term)
             )
         )
 

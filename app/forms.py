@@ -83,6 +83,10 @@ class LoginForm(FlaskForm):
 
 class BookForm(FlaskForm):
     """Book add/edit form."""
+    access_number = StringField('Access Number', validators=[
+        Optional(),
+        Length(max=50, message='Access number must be under 50 characters.')
+    ])
     title = StringField('Title', validators=[
         DataRequired(message='Title is required.'),
         Length(min=1, max=255)

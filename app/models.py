@@ -100,6 +100,7 @@ class Book(db.Model):
     __tablename__ = 'books'
 
     id = db.Column(db.Integer, primary_key=True)
+    access_number = db.Column(db.String(50), nullable=True, index=True)
     title = db.Column(db.String(255), nullable=False, index=True)
     author = db.Column(db.String(255), nullable=False, index=True)
     category = db.Column(db.String(100), nullable=False, index=True)

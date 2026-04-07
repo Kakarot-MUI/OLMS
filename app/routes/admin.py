@@ -61,6 +61,7 @@ def add_book():
                 category=form.category.data,
                 publication=form.publication.data,
                 total_copies=form.total_copies.data,
+                access_number=form.access_number.data,
                 cover_image=image_file
             )
             flash('Book added successfully!', 'success')
@@ -87,6 +88,7 @@ def edit_book(book_id):
                 category=form.category.data,
                 publication=form.publication.data,
                 total_copies=form.total_copies.data,
+                access_number=form.access_number.data,
                 cover_image=image_file
             )
             flash('Book updated successfully!', 'success')
