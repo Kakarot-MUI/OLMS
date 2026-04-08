@@ -83,6 +83,11 @@
                 </ul>
             </div>
 
+            <!-- Theme Toggle (One-Click) -->
+            <button class="theme-toggle-btn theme-toggle-click" title="Toggle theme">
+                <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+            </button>
+
             <!-- User Profile Dropdown (Desktop Only) -->
             <div class="dropdown d-none d-lg-block ms-2">
                 <a class="nav-link d-flex align-items-center gap-2 text-white" href="#" role="button"
@@ -104,12 +109,9 @@
                         </button>
                     </li>
                     <li>
-                        <button
-                            class="dropdown-item d-flex align-items-center justify-content-between theme-btn-toggle">
-                            <span><i class="bi bi-moon-stars me-2"></i>Dark Mode</span>
-                            <div class="form-check form-switch ms-3 mb-0">
-                                <input class="form-check-input" type="checkbox" id="darkModeSwitch">
-                            </div>
+                        <button class="dropdown-item d-flex align-items-center gap-2 theme-toggle-click">
+                            <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+                            <span>Toggle Theme</span>
                         </button>
                     </li>
                     <li>
@@ -234,14 +236,11 @@
                 </ul>
 
                 <div class="p-3 mt-auto">
-                    <div class="card theme-switch-card border-0">
-                        <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                            <span class="fs-sm"><i class="bi bi-moon-stars me-2"></i>Dark Mode</span>
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input theme-toggle-mobile" type="checkbox" id="mobileDarkMode">
-                            </div>
-                        </div>
-                    </div>
+                    <button class="btn w-100 d-flex align-items-center justify-content-center gap-2 theme-toggle-click"
+                        style="background: var(--primary-light); color: var(--primary); border-radius: var(--radius-sm); padding: 0.65rem;">
+                        <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+                        <span class="fw-600 fs-sm">Toggle Theme</span>
+                    </button>
                 </div>
             </div>
         </div>

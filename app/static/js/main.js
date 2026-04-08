@@ -79,34 +79,80 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ── Theme Switcher ─────────────────────────────────────────────
+    // ── Theme Switcher (One-Click Toggle with Animation) ──────────
     const html = document.documentElement;
-    const updateTheme = (theme) => {
+
+    // Create the overlay element once
+    const overlay = document.createElement('div');
+    overlay.className = 'theme-transition-overlay';
+    document.body.appendChild(overlay);
+
+    const applyTheme = (theme) => {
         html.setAttribute('data-theme', theme);
         html.setAttribute('data-bs-theme', theme);
         localStorage.setItem('olms-theme', theme);
 
-        // Sync all switches
+        // Update all toggle icons
+        document.querySelectorAll('.theme-toggle-icon').forEach(icon => {
+            icon.className = theme === 'dark'
+                ? 'bi bi-sun-fill theme-toggle-icon'
+                : 'bi bi-moon-stars-fill theme-toggle-icon';
+        });
+
+        // Sync any remaining switches (mobile)
         document.querySelectorAll('#darkModeSwitch, .theme-toggle-mobile').forEach(sw => {
             sw.checked = (theme === 'dark');
         });
     };
 
-    const savedTheme = localStorage.getItem('olms-theme') || 'light';
-    updateTheme(savedTheme);
+    const toggleTheme = (e) => {
+        const currentTheme = html.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
-    // Handle button clicks (traditional dropdown items)
-    document.querySelectorAll('.theme-btn').forEach(btn => {
+        // Position the animation from the button
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
+        const y = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+        overlay.style.setProperty('--tx', x + '%');
+        overlay.style.setProperty('--ty', y + '%');
+
+        // Set direction class and trigger animation
+        overlay.classList.remove('to-dark', 'to-light');
+        overlay.classList.add(newTheme === 'dark' ? 'to-dark' : 'to-light');
+        overlay.classList.add('active');
+
+        // Apply the theme midway through the animation
+        setTimeout(() => {
+            applyTheme(newTheme);
+        }, 150);
+
+        // Fade out overlay
+        setTimeout(() => {
+            overlay.classList.remove('active');
+        }, 500);
+    };
+
+    // Initialize theme on load
+    const savedTheme = localStorage.getItem('olms-theme') || 'light';
+    applyTheme(savedTheme);
+
+    // Bind all one-click toggle buttons
+    document.querySelectorAll('.theme-toggle-click').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            updateTheme(btn.getAttribute('data-theme-value'));
+            toggleTheme(e);
         });
     });
 
-    // Handle switch toggles (new dropdown switch)
+    // Keep legacy switch support (mobile offcanvas)
     document.querySelectorAll('#darkModeSwitch, .theme-toggle-mobile').forEach(sw => {
-        sw.addEventListener('change', () => {
-            updateTheme(sw.checked ? 'dark' : 'light');
+        sw.addEventListener('change', (e) => {
+            const newTheme = sw.checked ? 'dark' : 'light';
+            overlay.classList.remove('to-dark', 'to-light');
+            overlay.classList.add(newTheme === 'dark' ? 'to-dark' : 'to-light');
+            overlay.classList.add('active');
+            setTimeout(() => applyTheme(newTheme), 150);
+            setTimeout(() => overlay.classList.remove('active'), 500);
         });
     });
 });

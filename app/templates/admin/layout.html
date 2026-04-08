@@ -61,19 +61,11 @@
                 <a href="{{ url_for('admin.chat_inbox') }}"><i class="bi bi-chat-dots"></i> Chat</a>
             </li>
 
-            <!-- Theme Toggle -->
+            <!-- Theme Toggle (One-Click) -->
             <li class="nav-item">
-                <a href="#" class="active" id="themeDropdownAdmin" data-bs-toggle="dropdown" aria-expanded="false"
-                    style="cursor: pointer;">
-                    <i class="bi bi-moon-stars"></i> Theme
-                </a>
-                <ul class="dropdown-menu shadow-sm" aria-labelledby="themeDropdownAdmin"
-                    style="font-size: 0.9rem; margin-top: -30px; margin-left:10px;">
-                    <li><button class="dropdown-item theme-btn" data-theme-value="light"><i
-                                class="bi bi-sun me-2"></i>Light</button></li>
-                    <li><button class="dropdown-item theme-btn" data-theme-value="dark"><i
-                                class="bi bi-moon me-2"></i>Dark</button></li>
-                </ul>
+                <button class="theme-toggle-sidebar theme-toggle-click" title="Toggle theme">
+                    <i class="bi bi-moon-stars-fill theme-toggle-icon"></i> Theme
+                </button>
             </li>
             <!-- /Theme Toggle -->
 
