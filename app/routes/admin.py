@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, Response
 from flask_login import login_required, current_user
 from app.decorators import admin_required
 from app.forms import BookForm, IssueBookForm, ReturnBookForm, EditDueDateForm, AdminProfileForm
@@ -540,6 +540,75 @@ def history():
     
     return render_template('admin/history.html', history=all_issues,
                            total=total, active=active, returned=returned, overdue=overdue, search_query=search_query)
+
+
+@admin_bp.route('/export/issues')
+@admin_required
+def export_issues():
+    """Export issued/returned book records to CSV (opens in Excel)."""
+    import csv
+    from io import StringIO
+
+    status_filter = request.args.get('status', '')
+    search_query = request.args.get('q', '').strip()
+
+    issue_service.update_overdue_books()
+
+    q = IssuedBook.query.join(User).join(Book)
+
+    if status_filter == 'overdue':
+        q = q.filter(IssuedBook.status == 'overdue')
+    elif status_filter in ('issued', 'returned', 'lost', 'damaged'):
+        q = q.filter(IssuedBook.status == status_filter)
+
+    if search_query:
+        term = f"%{search_query}%"
+        q = q.filter(
+            db.or_(
+                User.name.ilike(term),
+                User.roll_number.ilike(term),
+                Book.title.ilike(term),
+                IssuedBook.issue_code.ilike(term)
+            )
+        )
+
+    records = q.order_by(IssuedBook.issue_date.desc()).all()
+
+    headers = [
+        'Issue Code', 'Student Name', 'Roll Number', 'Department',
+        'Division', 'Semester', 'Book Title', 'Author', 'Access Number',
+        'Issue Date', 'Due Date', 'Return Date', 'Status', 'Fine', 'Fine Paid'
+    ]
+
+    si = StringIO()
+    writer = csv.writer(si)
+    writer.writerow(headers)
+
+    for r in records:
+        writer.writerow([
+            r.issue_code,
+            r.user.name,
+            r.user.roll_number or '',
+            r.user.department or '',
+            r.user.division or '',
+            r.user.semester or '',
+            r.book.title,
+            r.book.author,
+            r.book.access_number or '',
+            r.issue_date.strftime('%Y-%m-%d') if r.issue_date else '',
+            r.due_date.strftime('%Y-%m-%d') if r.due_date else '',
+            r.return_date.strftime('%Y-%m-%d') if r.return_date else '',
+            r.status.capitalize(),
+            r.fine_amount if r.fine_amount else 0,
+            'Yes' if r.fine_paid else ('No' if r.fine_amount and r.fine_amount > 0 else '-'),
+        ])
+
+    filename = f"OLMS_Issue_History_{datetime.utcnow().strftime('%Y%m%d_%H%M')}.csv"
+    return Response(
+        si.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
 
 
 # ── Profile ──────────────────────────────────────────────────────────────

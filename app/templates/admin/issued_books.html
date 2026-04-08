@@ -28,15 +28,21 @@
         </div>
     </form>
 
-    <div class="btn-group" role="group">
-        <a href="{{ url_for('admin.issued_books', q=search_query) }}"
-            class="btn btn-sm {{ 'btn-primary' if not current_status else 'btn-outline-primary' }}">All</a>
-        <a href="{{ url_for('admin.issued_books', status='issued', q=search_query) }}"
-            class="btn btn-sm {{ 'btn-primary' if current_status == 'issued' else 'btn-outline-primary' }}">Issued</a>
-        <a href="{{ url_for('admin.issued_books', status='overdue', q=search_query) }}"
-            class="btn btn-sm {{ 'btn-primary' if current_status == 'overdue' else 'btn-outline-primary' }}">Overdue</a>
-        <a href="{{ url_for('admin.issued_books', status='returned', q=search_query) }}"
-            class="btn btn-sm {{ 'btn-primary' if current_status == 'returned' else 'btn-outline-primary' }}">Returned</a>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.issued_books', q=search_query) }}"
+                class="btn btn-sm {{ 'btn-primary' if not current_status else 'btn-outline-primary' }}">All</a>
+            <a href="{{ url_for('admin.issued_books', status='issued', q=search_query) }}"
+                class="btn btn-sm {{ 'btn-primary' if current_status == 'issued' else 'btn-outline-primary' }}">Issued</a>
+            <a href="{{ url_for('admin.issued_books', status='overdue', q=search_query) }}"
+                class="btn btn-sm {{ 'btn-primary' if current_status == 'overdue' else 'btn-outline-primary' }}">Overdue</a>
+            <a href="{{ url_for('admin.issued_books', status='returned', q=search_query) }}"
+                class="btn btn-sm {{ 'btn-primary' if current_status == 'returned' else 'btn-outline-primary' }}">Returned</a>
+        </div>
+        <a href="{{ url_for('admin.export_issues', status=current_status, q=search_query) }}"
+            class="btn btn-sm btn-outline-success" title="Export current view to Excel">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
     </div>
 </div>
 
