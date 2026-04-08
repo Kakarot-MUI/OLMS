@@ -203,7 +203,7 @@ def issue_book():
         for u in User.query.filter_by(role='user', status='active').order_by(User.name).all()
     ]
     form.book_id.choices = [
-        (b.id, f'{b.title} — {b.author} (Available: {b.available_copies})')
+        (b.id, f'[{b.access_number}] {b.title} — {b.author} (Available: {b.available_copies})' if b.access_number else f'{b.title} — {b.author} (Available: {b.available_copies})')
         for b in Book.query.filter(Book.available_copies > 0).order_by(Book.title).all()
     ]
 

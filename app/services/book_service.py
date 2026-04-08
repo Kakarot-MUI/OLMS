@@ -140,11 +140,14 @@ def delete_book(book_id):
 
 
 def search_books(query=None, category=None, page=1, per_page=12):
-    """Search books by title/author with optional category filter."""
+    """Search books by title/author/access_number with access number prioritized."""
+    from sqlalchemy import case
+
     q = Book.query
 
     if query:
-        search_term = f'%{query.strip()}%'
+        stripped = query.strip()
+        search_term = f'%{stripped}%'
         q = q.filter(
             db.or_(
                 Book.title.ilike(search_term),
@@ -152,11 +155,17 @@ def search_books(query=None, category=None, page=1, per_page=12):
                 Book.access_number.ilike(search_term)
             )
         )
+        # Exact access number matches appear first
+        q = q.order_by(
+            case((Book.access_number.ilike(stripped), 0), else_=1),
+            Book.title.asc()
+        )
+    else:
+        q = q.order_by(Book.title.asc())
 
     if category:
         q = q.filter(Book.category == category)
 
-    q = q.order_by(Book.title.asc())
     return q.paginate(page=page, per_page=per_page, error_out=False)
 
 
