@@ -202,9 +202,11 @@ def issue_book():
         (u.id, f'{u.name} ({u.email})')
         for u in User.query.filter_by(role='user', status='active').order_by(User.name).all()
     ]
+    # Get available books for the dropdown
+    available_books = Book.query.filter(Book.available_copies > 0).order_by(Book.title).all()
     form.book_id.choices = [
         (b.id, f'[{b.access_number}] {b.title} — {b.author} (Available: {b.available_copies})' if b.access_number else f'{b.title} — {b.author} (Available: {b.available_copies})')
-        for b in Book.query.filter(Book.available_copies > 0).order_by(Book.title).all()
+        for b in available_books
     ]
 
     if form.validate_on_submit():
@@ -215,7 +217,7 @@ def issue_book():
         except ValueError as e:
             flash(str(e), 'danger')
 
-    return render_template('admin/issue_book.html', form=form)
+    return render_template('admin/issue_book.html', form=form, available_books=available_books)
 
 
 @admin_bp.route('/return/<int:issue_id>', methods=['POST'])

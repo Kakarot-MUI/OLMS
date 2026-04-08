@@ -25,7 +25,14 @@
 
                     <div class="mb-4">
                         {{ form.book_id.label(class="form-label fw-bold") }}
-                        {{ form.book_id(class="form-select", id="issue-book") }}
+                        <select class="form-select" id="issue-book" name="book_id">
+                            <option value="">Select a book...</option>
+                            {% for book in available_books %}
+                            <option value="{{ book.id }}" data-access="{{ book.access_number or '' }}">
+                                {% if book.access_number %}[{{ book.access_number }}] {% endif %}{{ book.title }} — {{ book.author }} (Available: {{ book.available_copies }})
+                            </option>
+                            {% endfor %}
+                        </select>
                         {% for error in form.book_id.errors %}
                         <div class="invalid-feedback d-block">{{ error }}</div>
                         {% endfor %}
@@ -72,11 +79,26 @@
             }
         });
 
-        // Initialize Tom Select for Book
+        // Initialize Tom Select for Book — with access number priority
         new TomSelect('#issue-book', {
             create: false,
             placeholder: 'Type access number, book title or author...',
             maxItems: 1,
+            sortField: [{ field: '$score', direction: 'desc' }],
+            score: function (search) {
+                var searchLower = search.toLowerCase().trim();
+                return function (item) {
+                    var access = (item.access || '').toLowerCase().trim();
+                    // Exact access number match → highest score
+                    if (access && access === searchLower) return 100000;
+                    // Access number starts with search → high score
+                    if (access && access.indexOf(searchLower) === 0) return 10000;
+                    // Title/text contains search
+                    var text = (item.text || '').toLowerCase();
+                    if (text.indexOf(searchLower) >= 0) return 100;
+                    return 0;
+                };
+            },
             render: {
                 no_results: function (data, escape) {
                     return '<div class="no-results">No available books found for "' + escape(data.input) + '"</div>';
