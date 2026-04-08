@@ -1313,3 +1313,37 @@ a:hover {
 .chat-bubble .delete-btn:hover {
     opacity: 1 !important;
 }
+
+/* ── Export Button (Premium) ──────────────────────────────────── */
+.btn-export {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    border: none;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+}
+
+.btn-export:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary-hover), var(--accent-hover));
+}
+
+.btn-export:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(79, 70, 229, 0.2);
+}
+
+.btn-export i {
+    font-size: 1rem;
+}

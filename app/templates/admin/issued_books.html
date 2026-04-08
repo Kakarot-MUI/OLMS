@@ -40,8 +40,8 @@
                 class="btn btn-sm {{ 'btn-primary' if current_status == 'returned' else 'btn-outline-primary' }}">Returned</a>
         </div>
         <a href="{{ url_for('admin.export_issues', status=current_status, q=search_query) }}"
-            class="btn btn-sm btn-outline-success" title="Export current view to Excel">
-            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+            class="btn-export" title="Export current view to Excel">
+            <i class="bi bi-download"></i>Export
         </a>
     </div>
 </div>

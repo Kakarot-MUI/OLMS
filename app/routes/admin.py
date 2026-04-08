@@ -575,8 +575,8 @@ def export_issues():
     records = q.order_by(IssuedBook.issue_date.desc()).all()
 
     headers = [
-        'Issue Code', 'Student Name', 'Roll Number', 'Department',
-        'Division', 'Semester', 'Book Title', 'Author', 'Access Number',
+        'Access Number', 'Student Name', 'Roll Number', 'Department',
+        'Division', 'Semester', 'Book Title', 'Author',
         'Issue Date', 'Due Date', 'Return Date', 'Status', 'Fine', 'Fine Paid'
     ]
 
@@ -586,7 +586,7 @@ def export_issues():
 
     for r in records:
         writer.writerow([
-            r.issue_code,
+            r.book.access_number or '',
             r.user.name,
             r.user.roll_number or '',
             r.user.department or '',
@@ -594,7 +594,6 @@ def export_issues():
             r.user.semester or '',
             r.book.title,
             r.book.author,
-            r.book.access_number or '',
             r.issue_date.strftime('%Y-%m-%d') if r.issue_date else '',
             r.due_date.strftime('%Y-%m-%d') if r.due_date else '',
             r.return_date.strftime('%Y-%m-%d') if r.return_date else '',
