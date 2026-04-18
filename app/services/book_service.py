@@ -158,11 +158,15 @@ def search_books(query=None, category=None, page=1, per_page=12):
         # Exact access number matches appear first
         q = q.order_by(
             case((Book.access_number.ilike(stripped), 0), else_=1),
-            db.cast(Book.access_number, db.Integer).asc(),
+            db.func.length(Book.access_number).asc(),
             Book.access_number.asc()
         )
     else:
-        q = q.order_by(db.cast(Book.access_number, db.Integer).asc(), Book.access_number.asc())
+        q = q.order_by(
+            case((Book.access_number.is_(None), 1), else_=0),
+            db.func.length(Book.access_number).asc(),
+            Book.access_number.asc()
+        )
 
     if category:
         q = q.filter(Book.category == category)
