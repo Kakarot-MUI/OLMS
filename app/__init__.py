@@ -92,7 +92,8 @@ def create_app(config_name='default'):
             ('users', 'department', 'VARCHAR(100) NULL'),
             ('users', 'semester', 'INTEGER NULL'),
             ('books', 'image_url', 'TEXT NULL'),
-            ('books', 'image_public_id', 'VARCHAR(255) NULL')
+            ('books', 'image_public_id', 'VARCHAR(255) NULL'),
+            ('issued_books', 'copy_id', 'INTEGER NULL')
         ]
         
         for table, col, sql_type in needed_cols:
