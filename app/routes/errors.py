@@ -15,5 +15,7 @@ def not_found(error):
 
 @errors_bp.app_errorhandler(Exception)
 def handle_exception(e):
-    """Catch all exceptions and show the traceback for debugging."""
-    return f"<h1>500 Internal Server Error</h1><pre>{traceback.format_exc()}</pre>", 500
+    from flask import current_app
+    import traceback
+    current_app.logger.error(f"500 Error: {e}\n{traceback.format_exc()}")
+    return render_template('errors/500.html'), 500

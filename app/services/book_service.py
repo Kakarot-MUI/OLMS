@@ -116,17 +116,22 @@ def update_book(book_id, title, author, category, publication, total_copies, acc
     
     new_access_number = access_number.strip() if access_number else None
     
-    # If access numbers string changed, we only add new ones (prevent deleting issued copies by naive sync)
-    if new_access_number and new_access_number != book.access_number:
+    if new_access_number is not None:
         book.access_number = new_access_number
-        current_nums = [c.access_number for c in book.copies.all()]
-        new_nums = [n.strip() for n in new_access_number.split(',') if n.strip()]
         
-        for num in new_nums:
+    # Auto-heal: Always ensure all numbers in the string exist as BookCopy objects
+    if book.access_number:
+        current_nums = [c.access_number for c in book.copies.all()]
+        desired_nums = [n.strip() for n in book.access_number.split(',') if n.strip()]
+        
+        for num in desired_nums:
             if num not in current_nums:
                 copy = BookCopy(book_id=book.id, access_number=num, status='available')
                 db.session.add(copy)
                 
+    # Also sync counts if we just added copies manually
+    book.total_copies = total_copies
+    book.available_copies = new_available
     db.session.commit()
     return book
 

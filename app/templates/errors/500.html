@@ -1,10 +1,28 @@
-{% extends "base.html" %}
-{% block title %}500 Server Error{% endblock %}
-{% block body %}
-<div class="error-page">
-    <div class="error-code">500</div>
-    <h2 class="error-message">Something Went Wrong</h2>
-    <p class="error-description">We're experiencing a technical issue. Please try again later.</p>
-    <a href="{{ url_for('auth.index') }}" class="btn btn-primary"><i class="bi bi-house me-2"></i>Go Home</a>
+{% extends "user/layout.html" %}
+
+{% block title %}Server Error{% endblock %}
+{% block page_title %}Under Maintenance{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-md-6 text-center">
+        <div class="mb-4">
+            <i class="bi bi-gear-wide-connected text-warning" style="font-size: 5rem;"></i>
+        </div>
+        <h1 class="display-4 fw-bold text-dark mb-3">Under Maintenance</h1>
+        <h4 class="text-muted mb-4">We encountered an unexpected glitch on the server.</h4>
+        <p class="text-secondary mb-5">
+            Our system is actively logging and looking into this issue to get everything running smoothly again. 
+            Please hang tight!
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <button onclick="window.history.back()" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 12px; font-weight: 600;">
+                <i class="bi bi-arrow-left me-2"></i>Go Back
+            </button>
+            <a href="/" class="btn btn-primary px-4 py-2" style="border-radius: 12px; font-weight: 600;">
+                <i class="bi bi-house me-2"></i>Return Home
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}
