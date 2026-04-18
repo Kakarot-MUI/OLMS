@@ -68,10 +68,19 @@
                     <tr>
                         <td>{{ (pagination.page - 1) * pagination.per_page + loop.index }}</td>
                         <td>
-                            {% if book.copies.all() | length > 0 %}
+                            {% set copies_list = book.copies.all() %}
+                            {% if copies_list | length > 0 %}
                                 <div class="d-flex flex-wrap gap-1">
-                                    {% for copy in book.copies.all() %}
+                                    {% for copy in copies_list %}
                                         <span class="badge {{ 'bg-success' if copy.status == 'available' else 'bg-danger' }}" title="Access #: {{ copy.access_number }} ({{ copy.status }})">{{ copy.access_number }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% elif book.access_number %}
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for num in book.access_number.split(',') %}
+                                        {% if num.strip() %}
+                                            <span class="badge bg-secondary" title="Pending Sync">{{ num.strip() }}</span>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
                             {% else %}
@@ -146,8 +155,16 @@
                                     {{ copy.access_number }}
                                 </span>
                             {% endfor %}
+                        {% elif book.access_number %}
+                            {% for num in book.access_number.split(',') %}
+                                {% if num.strip() %}
+                                    <span class="badge bg-secondary text-xs" title="Pending Sync">
+                                        {{ num.strip() }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
                         {% else %}
-                            <span class="badge bg-light text-dark border text-xs">No Copies</span>
+                            <span class="badge bg-light text-dark text-xs border">No Copies</span>
                         {% endif %}
                     </div>
                     <p class="text-muted small mb-0 text-truncate">{{ book.author }}</p>
