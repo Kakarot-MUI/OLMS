@@ -182,21 +182,18 @@ def search_books(query=None, category=None, page=1, per_page=12):
             db.or_(
                 Book.title.ilike(search_term),
                 Book.author.ilike(search_term),
-                Book.access_number.ilike(search_term)
+                Book.access_number.ilike(search_term),
+                Book.copies.any(BookCopy.access_number == stripped)
             )
         )
-        # Exact access number matches appear first
+        # Exact copy matches or title matches appear first
         q = q.order_by(
-            case((Book.access_number.ilike(stripped), 0), else_=1),
-            db.func.length(Book.access_number).asc(),
-            Book.access_number.asc()
+            case((Book.copies.any(BookCopy.access_number == stripped), 0), else_=1),
+            case((Book.title.ilike(f'{stripped}%'), 0), else_=1),
+            Book.id.asc()
         )
     else:
-        q = q.order_by(
-            case((Book.access_number.is_(None), 1), else_=0),
-            db.func.length(Book.access_number).asc(),
-            Book.access_number.asc()
-        )
+        q = q.order_by(Book.id.asc())
 
     if category:
         q = q.filter(Book.category == category)
