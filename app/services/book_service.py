@@ -1,12 +1,11 @@
 from app import db
-from app.models import Book
+from app.models import Book, BookCopy
 import cloudinary
 import cloudinary.uploader
 from flask import current_app
 
 
 def get_all_books():
-    """Get all books ordered by newest first."""
     return Book.query.order_by(Book.created_at.desc()).all()
 
 
@@ -52,6 +51,19 @@ def create_book(title, author, category, publication, total_copies, access_numbe
         image_public_id=image_public_id
     )
     db.session.add(book)
+    db.session.flush()
+
+    # Generate individual copies
+    if access_number:
+        acc_nums = [n.strip() for n in access_number.split(',') if n.strip()]
+    else:
+        acc_nums = [f"B{book.id}-{i+1}" for i in range(total_copies)]
+        book.access_number = ", ".join(acc_nums)
+
+    for num in acc_nums:
+        copy = BookCopy(book_id=book.id, access_number=num, status='available')
+        db.session.add(copy)
+
     db.session.commit()
     return book
 
@@ -101,7 +113,20 @@ def update_book(book_id, title, author, category, publication, total_copies, acc
     book.publication = publication.strip()
     book.total_copies = total_copies
     book.available_copies = new_available
-    book.access_number = access_number.strip() if access_number else None
+    
+    new_access_number = access_number.strip() if access_number else None
+    
+    # If access numbers string changed, we only add new ones (prevent deleting issued copies by naive sync)
+    if new_access_number and new_access_number != book.access_number:
+        book.access_number = new_access_number
+        current_nums = [c.access_number for c in book.copies.all()]
+        new_nums = [n.strip() for n in new_access_number.split(',') if n.strip()]
+        
+        for num in new_nums:
+            if num not in current_nums:
+                copy = BookCopy(book_id=book.id, access_number=num, status='available')
+                db.session.add(copy)
+                
     db.session.commit()
     return book
 

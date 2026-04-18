@@ -67,7 +67,17 @@
                     {% for book in pagination.items %}
                     <tr>
                         <td>{{ (pagination.page - 1) * pagination.per_page + loop.index }}</td>
-                        <td class="text-monospace fw-600 text-primary">{{ book.access_number or '---' }}</td>
+                        <td>
+                            {% if book.copies.count() > 0 %}
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for copy in book.copies %}
+                                        <span class="badge {{ 'bg-success' if copy.status == 'available' else 'bg-danger' }}" title="Access #: {{ copy.access_number }} ({{ copy.status }})">{{ copy.access_number }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">---</span>
+                            {% endif %}
+                        </td>
                         <td><strong>{{ book.title }}</strong></td>
                         <td>{{ book.author }}</td>
                         <td>{{ book.publication }}</td>
@@ -128,10 +138,16 @@
                 </div>
                 <div class="card-body p-3 text-center">
                     <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ book.title }}">{{ book.title }}</h6>
-                    <div class="mb-2">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-xs">
-                            {{ book.access_number or 'No Access #' }}
-                        </span>
+                    <div class="mb-2 d-flex flex-wrap justify-content-center gap-1">
+                        {% if book.copies.count() > 0 %}
+                            {% for copy in book.copies %}
+                                <span class="badge {{ 'bg-success' if copy.status == 'available' else 'bg-danger' }} text-xs" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
+                                    {{ copy.access_number }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="badge bg-light text-dark border text-xs">No Copies</span>
+                        {% endif %}
                     </div>
                     <p class="text-muted small mb-0 text-truncate">{{ book.author }}</p>
                     <p class="text-secondary text-xs mb-2 text-truncate" style="font-size: 0.75rem;">{{ book.publication }}</p>

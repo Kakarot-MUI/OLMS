@@ -112,6 +112,7 @@ class Book(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     # Relationships
+    copies = db.relationship('BookCopy', backref='book', lazy='dynamic', cascade='all, delete-orphan')
     issued_records = db.relationship('IssuedBook', backref='book', lazy='dynamic')
     saved_by = db.relationship('SavedBook', backref='book', lazy='dynamic', cascade='all, delete-orphan')
     reviews = db.relationship('Review', backref='book', lazy='dynamic', cascade='all, delete-orphan')
@@ -138,6 +139,23 @@ class Book(db.Model):
         return f'<Book {self.title}>'
 
 
+class BookCopy(db.Model):
+    """Specific physical copy of a book."""
+    __tablename__ = 'book_copies'
+
+    id = db.Column(db.Integer, primary_key=True)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False, index=True)
+    access_number = db.Column(db.String(50), nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False, default='available') # available, issued
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    # Relationships
+    issued_records = db.relationship('IssuedBook', backref='copy', lazy='dynamic')
+
+    def __repr__(self):
+        return f'<BookCopy {self.access_number} (Book: {self.book_id})>'
+
+
 class IssuedBook(db.Model):
     """Issued book tracking model."""
     __tablename__ = 'issued_books'
@@ -146,6 +164,7 @@ class IssuedBook(db.Model):
     issue_code = db.Column(db.String(20), unique=True, nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False, index=True)
+    copy_id = db.Column(db.Integer, db.ForeignKey('book_copies.id'), nullable=True, index=True)
     issue_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, nullable=False, index=True)
     return_date = db.Column(db.DateTime, nullable=True)

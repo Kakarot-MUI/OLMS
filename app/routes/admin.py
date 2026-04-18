@@ -208,16 +208,25 @@ def issue_book():
         (b.id, f'[{b.access_number}] {b.title} — {b.author} (Available: {b.available_copies})' if b.access_number else f'{b.title} — {b.author} (Available: {b.available_copies})')
         for b in available_books
     ]
+    
+    # Map book_id to list of available BookCopy dicts for frontend dynamic dropdown
+    copies_map = {}
+    for b in available_books:
+        copies = [{'id': c.id, 'access_number': c.access_number} for c in b.copies.filter_by(status='available').all()]
+        if copies:
+            copies_map[b.id] = copies
 
     if form.validate_on_submit():
+        copy_id_str = request.form.get('copy_id')
+        copy_id = int(copy_id_str) if copy_id_str and copy_id_str.isdigit() else None
         try:
-            issue_service.issue_book(form.user_id.data, form.book_id.data, days=form.issue_days.data)
+            issue_service.issue_book(form.user_id.data, form.book_id.data, copy_id=copy_id, days=form.issue_days.data)
             flash('Book issued successfully!', 'success')
             return redirect(url_for('admin.issued_books'))
         except ValueError as e:
             flash(str(e), 'danger')
 
-    return render_template('admin/issue_book.html', form=form, available_books=available_books)
+    return render_template('admin/issue_book.html', form=form, available_books=available_books, copies_map=copies_map)
 
 
 @admin_bp.route('/return/<int:issue_id>', methods=['POST'])

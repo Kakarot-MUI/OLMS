@@ -39,6 +39,15 @@
                         <small class="text-muted mt-1 d-block">Only books with available copies are shown.</small>
                     </div>
 
+                    <div class="mb-4" id="copy-selection-container" style="display: none;">
+                        <label class="form-label fw-bold" for="issue-copy">Select Copy Access Number</label>
+                        <select class="form-select" id="issue-copy" name="copy_id" required>
+                            <option value="">Select a specific copy...</option>
+                        </select>
+                        <div class="invalid-feedback d-block" id="copy-error" style="display: none;">Please select a specific copy.</div>
+                        <small class="text-muted mt-1 d-block">Choose the exact physical copy you are giving to the student.</small>
+                    </div>
+
                     <div class="mb-4">
                         {{ form.issue_days.label(class="form-label fw-bold") }}
                         <div class="input-group">
@@ -103,6 +112,50 @@
                 no_results: function (data, escape) {
                     return '<div class="no-results">No available books found for "' + escape(data.input) + '"</div>';
                 }
+            }
+        });
+
+        // Copies Mapping Logic
+        const copiesMap = {{ copies_map | tojson | safe }};
+        const bookSelect = document.getElementById('issue-book');
+        const copySelectContainer = document.getElementById('copy-selection-container');
+        const copySelect = document.getElementById('issue-copy');
+        let tomSelectBook = bookSelect.tomselect;
+
+        tomSelectBook.on('change', function(value) {
+            copySelect.innerHTML = '<option value="">Select a specific copy...</option>';
+            if (value && copiesMap[value]) {
+                const copies = copiesMap[value];
+                if (copies.length > 0) {
+                    copies.forEach(copy => {
+                        const option = document.createElement('option');
+                        option.value = copy.id;
+                        option.textContent = 'Access # ' + copy.access_number;
+                        copySelect.appendChild(option);
+                    });
+                    copySelectContainer.style.display = 'block';
+                    copySelect.required = true;
+                    // Auto-select if only 1 copy available
+                    if(copies.length === 1) {
+                        copySelect.value = copies[0].id;
+                    }
+                } else {
+                    copySelectContainer.style.display = 'none';
+                    copySelect.required = false;
+                }
+            } else {
+                 copySelectContainer.style.display = 'none';
+                 copySelect.required = false;
+            }
+        });
+        
+        // Form validate specific copy
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if(copySelectContainer.style.display === 'block' && !copySelect.value) {
+                e.preventDefault();
+                document.getElementById('copy-error').style.display = 'block';
+            } else {
+                document.getElementById('copy-error').style.display = 'none';
             }
         });
     });

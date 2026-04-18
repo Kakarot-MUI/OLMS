@@ -4,8 +4,8 @@ from app import db
 from app.models import Book, IssuedBook, User
 
 
-def issue_book(user_id, book_id, days=None):
-    """Issue a book to a user with transactional safety."""
+def issue_book(user_id, book_id, copy_id=None, days=None):
+    """Issue a specific copy of a book to a user with transactional safety."""
     user = User.query.get(user_id)
     if not user:
         return False, 'User not found.'
@@ -35,10 +35,24 @@ def issue_book(user_id, book_id, days=None):
     now = datetime.utcnow()
 
     try:
+        # Mark copy as issued if we explicitly have one
+        from app.models import BookCopy
+        copy = None
+        if copy_id:
+            copy = BookCopy.query.get(copy_id)
+            if copy and copy.status == 'available':
+                copy.status = 'issued'
+        else:
+            copy = BookCopy.query.filter_by(book_id=book_id, status='available').first()
+            if copy:
+                copy.status = 'issued'
+                copy_id = copy.id
+
         issued_book = IssuedBook(
             issue_code=IssuedBook.generate_issue_code(),
             user_id=user_id,
             book_id=book_id,
+            copy_id=copy_id if copy else None,
             issue_date=now,
             due_date=now + timedelta(days=days),
             status='issued',
@@ -73,6 +87,14 @@ def return_book(issue_id):
         issued.return_date = datetime.utcnow()
         issued.status = 'returned'
         issued.book.available_copies += 1
+        
+        # Free up the specific copy
+        if issued.copy_id:
+            from app.models import BookCopy
+            copy = BookCopy.query.get(issued.copy_id)
+            if copy:
+                copy.status = 'available'
+                
         db.session.commit()
         return issued
     except Exception:
