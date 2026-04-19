@@ -67,7 +67,7 @@ def create_app(config_name='default'):
             unread_chat_count = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
             due_books_count = 0
             admin_is_online = False
-            if current_user.role == 'student':
+            if current_user.role != 'admin':
                 due_books_count = IssuedBook.query.filter_by(
                     user_id=current_user.id, status='issued'
                 ).filter(IssuedBook.due_date < datetime.utcnow()).count()
