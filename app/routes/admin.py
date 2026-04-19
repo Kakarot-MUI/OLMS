@@ -13,8 +13,11 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.before_request
 @login_required
 def before_request():
-    """Ensure all admin routes require authentication."""
-    pass
+    """Ensure all admin routes require authentication and update online heartbeat."""
+    from datetime import datetime
+    if current_user.is_authenticated:
+        current_user.last_active_at = datetime.utcnow()
+        db.session.commit()
 
 
 @admin_bp.route('/dashboard')
@@ -813,3 +816,13 @@ def purchase_request(req_id):
     flash(f"Marked '{req.title}' as purchased. The student has been notified!", 'success')
     return redirect(url_for('admin.book_requests'))
 
+
+@admin_bp.route('/test-500')
+def test_500():
+    """Temporary test route to crash the server and display the 500 Maintenance Mode error page."""
+    raise Exception("This is a deliberate test of the 500 Maintenance Screen!")
+
+@admin_bp.route('/chart-preview')
+def chart_preview():
+    """Renders the hardcoded sandbox preview of the Chart.js dashboard features."""
+    return render_template('admin/chart_demo.html')
