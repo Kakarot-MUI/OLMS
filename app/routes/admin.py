@@ -827,22 +827,4 @@ def chart_preview():
     """Renders the hardcoded sandbox preview of the Chart.js dashboard features."""
     return render_template('admin/chart_demo.html')
 
-@admin_bp.route('/debug-online')
-def debug_online():
-    """TEMPORARY: Debug endpoint to check admin online status data."""
-    from datetime import datetime
-    from app.models import User
-    admin = User.query.filter_by(role='admin').first()
-    now = datetime.utcnow()
-    if not admin:
-        return {'error': 'No admin user found with role=admin', 'now': str(now)}
-    delta = (now - admin.last_active_at).total_seconds() if admin.last_active_at else None
-    return {
-        'admin_id': admin.id,
-        'admin_role': admin.role,
-        'last_active_at': str(admin.last_active_at),
-        'server_utcnow': str(now),
-        'seconds_ago': delta,
-        'is_online': admin.is_online,
-        'threshold_seconds': 300
-    }
+

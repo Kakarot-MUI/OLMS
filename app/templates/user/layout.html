@@ -1,16 +1,6 @@
 {% extends "base.html" %}
 
 {% block body %}
-<!-- TEMPORARY DEBUG BANNER - REMOVE AFTER TESTING -->
-{% if admin_is_online %}
-<div style="background: lime; color: black; text-align: center; padding: 10px; font-weight: bold; font-size: 18px;">
-    DEBUG: admin_is_online = TRUE ✅
-</div>
-{% else %}
-<div style="background: red; color: white; text-align: center; padding: 10px; font-weight: bold; font-size: 18px;">
-    DEBUG: admin_is_online = FALSE ❌
-</div>
-{% endif %}
 {# ── Top Navbar ──────────────────────────────────────────────── #}
 <nav class="navbar navbar-expand-lg navbar-olms">
     <div class="container">
