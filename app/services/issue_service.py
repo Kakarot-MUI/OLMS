@@ -241,6 +241,10 @@ def send_push_notification(user_id, title, body, url="/"):
         
     vapid_private_key = current_app.config.get('VAPID_PRIVATE_KEY')
     vapid_claims = current_app.config.get('VAPID_CLAIMS')
+    vapid_claim_email = current_app.config.get('VAPID_CLAIM_EMAIL')
+    
+    if not vapid_claims and vapid_claim_email:
+        vapid_claims = {"sub": f"mailto:{vapid_claim_email}"}
     
     if not vapid_private_key or not vapid_claims:
         current_app.logger.error("VAPID config missing. Cannot send push.")
