@@ -244,6 +244,31 @@ def return_book(issue_id):
     return redirect(url_for('admin.issued_books'))
 
 
+@admin_bp.route('/issued/clear_all', methods=['POST'])
+@admin_required
+def clear_all_issues():
+    """Danger: Clear all issued books history and reset quantities."""
+    try:
+        records = IssuedBook.query.all()
+        count = len(records)
+        for record in records:
+            # If the book is still "out", we must restore the inventory count before deleting
+            if record.status in ['issued', 'overdue']:
+                if record.book:
+                    record.book.available_copies += 1
+                if record.copy:
+                    record.copy.status = 'available'
+            db.session.delete(record)
+            
+        db.session.commit()
+        flash(f'Successfully purged {count} issue history records.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error clearing records: {str(e)}', 'danger')
+        
+    return redirect(url_for('admin.issued_books'))
+
+
 @admin_bp.route('/resolve/<int:issue_id>', methods=['POST'])
 @admin_required
 def resolve_lost_damaged(issue_id):
