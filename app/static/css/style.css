@@ -1348,6 +1348,41 @@ a:hover {
     font-size: 1rem;
 }
 
+/* ── Purge Data Button (Premium Danger) ───────────────────────── */
+.btn-purge {
+    background: linear-gradient(135deg, var(--danger), #dc2626);
+    color: #fff;
+    border: none;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+}
+
+.btn-purge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    color: #fff;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.btn-purge:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
+.btn-purge i {
+    font-size: 1rem;
+}
+
 /* ── Theme Transition Overlay ─────────────────────────────────── */
 .theme-transition-overlay {
     position: fixed;
