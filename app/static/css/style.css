@@ -647,20 +647,30 @@ a:hover {
 }
 
 .badge-lost_replaced {
-    background: #e2e8f0; /* Darker, clearly visible grey */
+    background: #e2e8f0;
     color: #475569;
     border: 1px solid #94a3b8;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
 }
 
 .badge-lost {
-    background: #94a3b8; /* Solid visible grey */
+    background: #94a3b8;
     color: #ffffff;
+    white-space: nowrap;
+    padding: 0.35rem 0.75rem;
 }
 
 .badge-damaged_replaced {
     background: #fffbeb;
     color: #b45309;
     border: 1px solid #fcd34d;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
 }
 
 .badge-active {
