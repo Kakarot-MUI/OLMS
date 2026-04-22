@@ -716,17 +716,28 @@ def history():
             db.or_(
                 User.name.ilike(search_term),
                 Book.title.ilike(search_term),
-                IssuedBook.issue_code.ilike(search_term)
+                IssuedBook.issue_code.ilike(search_term),
+                IssuedBook.status.ilike(search_term) # Allow searching by 'lost', 'damaged', etc.
             )
         )
         
-    all_issues = q.order_by(IssuedBook.issue_date.desc()).all()
+    # Sort by return_date so most recent resolutions appear at the top.
+    # We use a case statement so that active books (return_date is NULL) can still be sorted logically.
+    all_issues = q.order_by(
+        db.case(
+            [(IssuedBook.return_date.isnot(None), 0)], 
+            else_=1
+        ).desc(), 
+        IssuedBook.return_date.desc(), 
+        IssuedBook.issue_date.desc()
+    ).all()
     
     # Calculate stats based on the unfiltered totals to maintain dashboard accuracy
     total_query_all = IssuedBook.query.all()
     total = len(total_query_all)
     active = sum(1 for i in total_query_all if i.status in ('issued', 'overdue'))
-    returned = sum(1 for i in total_query_all if i.status in ('returned', 'lost_replaced', 'damaged_replaced'))
+    # Include lost and damaged in 'returned' as they are no longer actively with the student
+    returned = sum(1 for i in total_query_all if i.status in ('returned', 'lost', 'damaged', 'lost_replaced', 'damaged_replaced'))
     overdue = sum(1 for i in total_query_all if i.status == 'overdue')
     
     return render_template('admin/history.html', history=all_issues,
