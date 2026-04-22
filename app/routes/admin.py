@@ -247,25 +247,61 @@ def return_book(issue_id):
 @admin_bp.route('/issued/clear_all', methods=['POST'])
 @admin_required
 def clear_all_issues():
-    """Danger: Clear all issued books history and reset quantities."""
+    """Danger: Clear issued books history within a date range."""
+    from datetime import datetime, timedelta
+
+    start_str = request.form.get('start_date', '')
+    end_str = request.form.get('end_date', '')
+    only_returned = request.form.get('only_returned') == '1'
+
+    # Validate dates
+    if not start_str or not end_str:
+        flash('Please select both a start and end date.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+
     try:
-        records = IssuedBook.query.all()
+        start_date = datetime.strptime(start_str, '%Y-%m-%d')
+        end_date = datetime.strptime(end_str, '%Y-%m-%d') + timedelta(days=1)  # Include end date fully
+    except ValueError:
+        flash('Invalid date format. Please use the date picker.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+
+    if end_date < start_date:
+        flash('End date cannot be before start date.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+
+    try:
+        # Build query with date filter
+        query = IssuedBook.query.filter(
+            IssuedBook.issue_date >= start_date,
+            IssuedBook.issue_date < end_date
+        )
+
+        # If "only returned" is checked, skip active/overdue issues
+        if only_returned:
+            query = query.filter(IssuedBook.status == 'returned')
+
+        records = query.all()
         count = len(records)
+
         for record in records:
-            # If the book is still "out", we must restore the inventory count before deleting
+            # If the book is still "out", restore inventory before deleting
             if record.status in ['issued', 'overdue']:
                 if record.book:
                     record.book.available_copies += 1
                 if record.copy:
                     record.copy.status = 'available'
             db.session.delete(record)
-            
+
         db.session.commit()
-        flash(f'Successfully purged {count} issue history records.', 'success')
+
+        date_range = f"{start_str} to {end_str}"
+        scope = "returned" if only_returned else "all"
+        flash(f'Successfully purged {count} {scope} records from {date_range}.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error clearing records: {str(e)}', 'danger')
-        
+
     return redirect(url_for('admin.issued_books'))
 
 

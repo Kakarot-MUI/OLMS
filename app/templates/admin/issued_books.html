@@ -43,12 +43,9 @@
             class="btn-export" title="Export current view to Excel">
             <i class="bi bi-download"></i>Export
         </a>
-        <form method="POST" action="{{ url_for('admin.clear_all_issues') }}" data-confirm="DANGER: Are you sure you want to completely clear ALL issue history? This action will reset the circulation history.">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn-purge" title="Clear all issues history">
-                <i class="bi bi-trash3"></i> Purge Data
-            </button>
-        </form>
+        <button type="button" class="btn-purge" data-bs-toggle="modal" data-bs-target="#purgeModal" title="Clear issues by date range">
+            <i class="bi bi-trash3"></i> Purge Data
+        </button>
     </div>
 </div>
 
@@ -274,5 +271,108 @@
         }
         document.body.removeChild(textArea);
     }
+</script>
+
+{# ── Purge Data Modal ──────────────────────────────────────────── #}
+<div class="modal fade" id="purgeModal" tabindex="-1" aria-labelledby="purgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border:none; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-lg);">
+            <div class="modal-header" style="background:linear-gradient(135deg, var(--danger), #dc2626); border:none; padding:1.25rem 1.5rem;">
+                <h5 class="modal-title text-white fw-bold" id="purgeModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Purge Issue Records
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.clear_all_issues') }}" id="purgeForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body" style="padding:1.5rem;">
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" style="border-radius:var(--radius-sm);">
+                        <i class="bi bi-shield-exclamation flex-shrink-0" style="font-size:1.25rem; margin-top:2px;"></i>
+                        <div>
+                            <strong>This action is permanent.</strong> Records deleted here cannot be recovered. Select a date range to target specific records.
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label for="purge_start" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="purge_start" name="start_date" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="purge_end" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="purge_end" name="end_date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3" style="padding-left:2.75rem;">
+                        <input class="form-check-input" type="checkbox" id="only_returned" name="only_returned" value="1" checked>
+                        <label class="form-check-label" for="only_returned">
+                            Only purge <strong>Returned</strong> books
+                        </label>
+                        <div class="form-text">Keep this ON to protect active/overdue issues. Turn it OFF to purge everything in the range.</div>
+                    </div>
+
+                    <div id="purge-preview" class="text-center py-2" style="display:none;">
+                        <span class="badge bg-danger-subtle text-danger" style="font-size:0.85rem; padding:0.5rem 1rem; border-radius:999px;">
+                            <i class="bi bi-trash3 me-1"></i> <span id="purge-summary"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--border-color); padding:1rem 1.5rem;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-purge" id="purgeConfirmBtn" disabled>
+                        <i class="bi bi-trash3"></i> Confirm Purge
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Purge Modal Logic ──────────────────────────────────────────
+    (function() {
+        const startEl = document.getElementById('purge_start');
+        const endEl = document.getElementById('purge_end');
+        const confirmBtn = document.getElementById('purgeConfirmBtn');
+        const preview = document.getElementById('purge-preview');
+        const summary = document.getElementById('purge-summary');
+        const form = document.getElementById('purgeForm');
+
+        function validateDates() {
+            const s = startEl.value;
+            const e = endEl.value;
+            if (s && e) {
+                if (new Date(e) < new Date(s)) {
+                    endEl.setCustomValidity('End date must be after start date.');
+                    confirmBtn.disabled = true;
+                    preview.style.display = 'none';
+                    return;
+                }
+                endEl.setCustomValidity('');
+                confirmBtn.disabled = false;
+
+                const onlyReturned = document.getElementById('only_returned').checked;
+                const rangeText = new Date(s).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})
+                    + ' → ' + new Date(e).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+                const scope = onlyReturned ? 'returned records' : 'ALL records (including active)';
+                summary.textContent = `Will delete ${scope} from ${rangeText}`;
+                preview.style.display = 'block';
+            } else {
+                confirmBtn.disabled = true;
+                preview.style.display = 'none';
+            }
+        }
+
+        startEl.addEventListener('change', validateDates);
+        endEl.addEventListener('change', validateDates);
+        document.getElementById('only_returned').addEventListener('change', validateDates);
+
+        form.addEventListener('submit', function(e) {
+            if (!confirm('FINAL WARNING: This will permanently delete the selected records. Continue?')) {
+                e.preventDefault();
+            }
+        });
+    })();
 </script>
 {% endblock %}
