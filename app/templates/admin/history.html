@@ -66,6 +66,7 @@
                     <th>Issued On</th>
                     <th>Due Date</th>
                     <th>Returned On</th>
+                    <th>Fine (₹)</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -92,7 +93,27 @@
                     <td>{{ issue.due_date.strftime('%b %d, %Y') }}</td>
                     <td>{{ issue.return_date.strftime('%b %d, %Y') if issue.return_date else '—' }}</td>
                     <td>
+                        {% if issue.fine_amount > 0 %}
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-danger">₹{{ issue.fine_amount }}</span>
+                                {% if issue.fine_paid %}
+                                    <span class="text-success" style="font-size: 0.7rem;"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>
+                                {% else %}
+                                    <span class="text-warning" style="font-size: 0.7rem;"><i class="bi bi-clock-history me-1"></i>Pending</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if issue.status == 'lost_replaced' %}
+                        <span class="badge-status badge-lost_replaced">Lost (Replaced)</span>
+                        {% elif issue.status == 'damaged_replaced' %}
+                        <span class="badge-status badge-damaged_replaced">Damaged (Replaced)</span>
+                        {% else %}
                         <span class="badge-status badge-{{ issue.status }}">{{ issue.status|capitalize }}</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

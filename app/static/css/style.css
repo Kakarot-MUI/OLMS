@@ -646,6 +646,18 @@ a:hover {
     color: #dc2626;
 }
 
+.badge-lost_replaced {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.badge-damaged_replaced {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
 .badge-active {
     background: #dcfce7;
     color: #15803d;

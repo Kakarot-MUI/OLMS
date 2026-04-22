@@ -219,7 +219,10 @@ def get_user_borrowing_stats(user_id):
         IssuedBook.status.in_(['issued', 'overdue'])
     ).count()
     overdue = IssuedBook.query.filter_by(user_id=user_id, status='overdue').count()
-    returned = IssuedBook.query.filter_by(user_id=user_id, status='returned').count()
+    returned = IssuedBook.query.filter(
+        IssuedBook.user_id == user_id,
+        IssuedBook.status.in_(['returned', 'lost_replaced', 'damaged_replaced'])
+    ).count()
     return {
         'total_borrowed': total,
         'currently_active': active,

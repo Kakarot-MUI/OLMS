@@ -455,6 +455,50 @@ def clear_fine(issue_id):
     return redirect(url_for('admin.fines'))
 
 
+@admin_bp.route('/fines/replace/<int:issue_id>', methods=['POST'])
+@admin_required
+def replace_book(issue_id):
+    """Restore a lost/damaged book copy when admin brings a new replacement."""
+    from app.models import BookCopy
+    issue = IssuedBook.query.get_or_404(issue_id)
+    
+    if issue.status not in ['lost', 'damaged']:
+        flash('Only lost or damaged books can be replaced.', 'warning')
+        return redirect(url_for('admin.fines'))
+    
+    book = issue.book
+    
+    if issue.status == 'lost':
+        # Lost book: restore inventory count
+        book.total_copies += 1
+        book.available_copies += 1
+        
+        # If the original copy record exists, revive it
+        if issue.copy:
+            issue.copy.status = 'available'
+        else:
+            # Create a new BookCopy record
+            new_copy = BookCopy(
+                book_id=book.id,
+                access_number=f"R{book.id}-{book.total_copies}",
+                status='available'
+            )
+            db.session.add(new_copy)
+        
+        issue.status = 'lost_replaced'
+        flash(f'Book "{book.title}" replaced! New copy added to inventory. History record updated to "Lost (Replaced)".', 'success')
+        
+    elif issue.status == 'damaged':
+        # Damaged book: copy is already in inventory, just mark resolved
+        if issue.copy and issue.copy.status != 'available':
+            issue.copy.status = 'available'
+        issue.status = 'damaged_replaced'
+        flash(f'Damaged copy of "{book.title}" replaced with new one. History record updated to "Damaged (Replaced)".', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('admin.fines'))
+
+
 @admin_bp.route('/edit-due-date/<int:issue_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_due_date(issue_id):
@@ -676,7 +720,7 @@ def history():
     total_query_all = IssuedBook.query.all()
     total = len(total_query_all)
     active = sum(1 for i in total_query_all if i.status in ('issued', 'overdue'))
-    returned = sum(1 for i in total_query_all if i.status == 'returned')
+    returned = sum(1 for i in total_query_all if i.status in ('returned', 'lost_replaced', 'damaged_replaced'))
     overdue = sum(1 for i in total_query_all if i.status == 'overdue')
     
     return render_template('admin/history.html', history=all_issues,

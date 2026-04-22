@@ -94,13 +94,24 @@
                         <span class="fw-bold text-danger fs-5">₹{{ issue.fine_amount }}</span>
                     </td>
                     <td class="text-end">
-                        <form method="POST" action="{{ url_for('admin.clear_fine', issue_id=issue.id) }}"
-                            data-confirm="Confirm ₹{{ issue.fine_amount }} fine has been PAID by {{ issue.user.name }} to unlock their account?">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-success fw-bold px-3">
-                                <i class="bi bi-check2-circle me-1"></i>Clear Debt
-                            </button>
-                        </form>
+                        <div class="d-flex gap-1 justify-content-end">
+                            {% if issue.status == 'lost' or issue.status == 'damaged' %}
+                            <form method="POST" action="{{ url_for('admin.replace_book', issue_id=issue.id) }}"
+                                onsubmit="return confirm('Confirm: A new replacement copy of \'{{ issue.book.title }}\' has been added to the physical library?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Book Replaced
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('admin.clear_fine', issue_id=issue.id) }}"
+                                data-confirm="Confirm ₹{{ issue.fine_amount }} fine has been PAID by {{ issue.user.name }} to unlock their account?">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-success fw-bold px-3">
+                                    <i class="bi bi-check2-circle me-1"></i>Clear Debt
+                                </button>
+                            </form>
+                        </div>
                         <script>
                             document.querySelectorAll('[data-confirm]').forEach(form => {
                                 form.onsubmit = function (e) {
