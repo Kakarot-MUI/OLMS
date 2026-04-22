@@ -623,13 +623,28 @@ def export_issues():
     """Export issued/returned book records to CSV (opens in Excel)."""
     import csv
     from io import StringIO
+    from datetime import timedelta
 
     status_filter = request.args.get('status', '')
     search_query = request.args.get('q', '').strip()
+    start_str = request.args.get('start_date', '')
+    end_str = request.args.get('end_date', '')
 
     issue_service.update_overdue_books()
 
     q = IssuedBook.query.join(User).join(Book)
+
+    # Date range filter
+    if start_str and end_str:
+        try:
+            start_date = datetime.strptime(start_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_str, '%Y-%m-%d') + timedelta(days=1)
+            q = q.filter(
+                IssuedBook.issue_date >= start_date,
+                IssuedBook.issue_date < end_date
+            )
+        except ValueError:
+            pass  # Silently ignore bad dates and export all
 
     if status_filter == 'overdue':
         q = q.filter(IssuedBook.status == 'overdue')
@@ -677,7 +692,12 @@ def export_issues():
             'Yes' if r.fine_paid else ('No' if r.fine_amount and r.fine_amount > 0 else '-'),
         ])
 
-    filename = f"OLMS_Issue_History_{datetime.utcnow().strftime('%Y%m%d_%H%M')}.csv"
+    # Build descriptive filename
+    if start_str and end_str:
+        filename = f"OLMS_Issues_{start_str}_to_{end_str}.csv"
+    else:
+        filename = f"OLMS_Issue_History_{datetime.utcnow().strftime('%Y%m%d_%H%M')}.csv"
+
     return Response(
         si.getvalue(),
         mimetype='text/csv',

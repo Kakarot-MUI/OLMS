@@ -39,10 +39,9 @@
             <a href="{{ url_for('admin.issued_books', status='returned', q=search_query) }}"
                 class="btn btn-sm {{ 'btn-primary' if current_status == 'returned' else 'btn-outline-primary' }}">Returned</a>
         </div>
-        <a href="{{ url_for('admin.export_issues', status=current_status, q=search_query) }}"
-            class="btn-export" title="Export current view to Excel">
+        <button type="button" class="btn-export" data-bs-toggle="modal" data-bs-target="#exportModal" title="Export records by date range">
             <i class="bi bi-download"></i>Export
-        </a>
+        </button>
         <button type="button" class="btn-purge" data-bs-toggle="modal" data-bs-target="#purgeModal" title="Clear issues by date range">
             <i class="bi bi-trash3"></i> Purge Data
         </button>
@@ -373,6 +372,113 @@
                 e.preventDefault();
             }
         });
+    })();
+</script>
+
+{# ── Export Data Modal ─────────────────────────────────────────── #}
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border:none; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-lg);">
+            <div class="modal-header" style="background:linear-gradient(135deg, var(--primary), var(--accent)); border:none; padding:1.25rem 1.5rem;">
+                <h5 class="modal-title text-white fw-bold" id="exportModalLabel">
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i>Export Issue Records
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding:1.5rem;">
+                <div class="alert alert-info d-flex align-items-start gap-2 mb-4" style="border-radius:var(--radius-sm);">
+                    <i class="bi bi-info-circle-fill flex-shrink-0" style="font-size:1.25rem; margin-top:2px;"></i>
+                    <div>
+                        Select a date range and status filter to export matching records as a <strong>CSV file</strong> (opens in Excel).
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="export_start" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="export_start" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="export_end" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="export_end" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="export_status" class="form-label">Status Filter</label>
+                    <select class="form-select" id="export_status">
+                        <option value="">All Records</option>
+                        <option value="issued">Issued</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="returned">Returned</option>
+                    </select>
+                </div>
+
+                <div id="export-preview" class="text-center py-2" style="display:none;">
+                    <span class="badge bg-primary-subtle text-primary" style="font-size:0.85rem; padding:0.5rem 1rem; border-radius:999px;">
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i> <span id="export-summary"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--border-color); padding:1rem 1.5rem;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" class="btn-export" id="exportDownloadBtn" style="pointer-events:none; opacity:0.5;">
+                    <i class="bi bi-download"></i> Download CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Export Modal Logic ─────────────────────────────────────────
+    (function() {
+        const startEl = document.getElementById('export_start');
+        const endEl = document.getElementById('export_end');
+        const statusEl = document.getElementById('export_status');
+        const downloadBtn = document.getElementById('exportDownloadBtn');
+        const preview = document.getElementById('export-preview');
+        const summary = document.getElementById('export-summary');
+        const baseUrl = "{{ url_for('admin.export_issues') }}";
+
+        function updateExport() {
+            const s = startEl.value;
+            const e = endEl.value;
+            const status = statusEl.value;
+
+            if (s && e) {
+                if (new Date(e) < new Date(s)) {
+                    downloadBtn.style.pointerEvents = 'none';
+                    downloadBtn.style.opacity = '0.5';
+                    preview.style.display = 'none';
+                    return;
+                }
+
+                // Build URL with query params
+                const params = new URLSearchParams();
+                params.set('start_date', s);
+                params.set('end_date', e);
+                if (status) params.set('status', status);
+                downloadBtn.href = baseUrl + '?' + params.toString();
+                downloadBtn.style.pointerEvents = 'auto';
+                downloadBtn.style.opacity = '1';
+
+                // Update preview
+                const rangeText = new Date(s).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})
+                    + ' \u2192 ' + new Date(e).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+                const scope = status ? status.charAt(0).toUpperCase() + status.slice(1) + ' records' : 'All records';
+                summary.textContent = `${scope} from ${rangeText}`;
+                preview.style.display = 'block';
+            } else {
+                downloadBtn.style.pointerEvents = 'none';
+                downloadBtn.style.opacity = '0.5';
+                preview.style.display = 'none';
+            }
+        }
+
+        startEl.addEventListener('change', updateExport);
+        endEl.addEventListener('change', updateExport);
+        statusEl.addEventListener('change', updateExport);
     })();
 </script>
 {% endblock %}
