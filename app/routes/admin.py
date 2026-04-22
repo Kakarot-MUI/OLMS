@@ -312,13 +312,7 @@ def resync_inventory():
     try:
         from app.models import BookCopy, Book, IssuedBook
         
-        # 1. Reset ALL physical copies to 'available'
-        BookCopy.query.update(
-            {BookCopy.status: 'available'},
-            synchronize_session=False
-        )
-        
-        # 2. Mark ALL active/overdue issues as 'returned'
+        # Step 1: Mark ALL active/overdue issues as 'returned'
         IssuedBook.query.filter(
             IssuedBook.status.in_(['issued', 'overdue'])
         ).update(
@@ -326,19 +320,44 @@ def resync_inventory():
             synchronize_session=False
         )
         
-        # 3. Recalculate every Book's available/total copies
+        # Step 2: Reset ALL existing physical copies to 'available'
+        BookCopy.query.update(
+            {BookCopy.status: 'available'},
+            synchronize_session=False
+        )
+        
+        # Step 3: For books with NO BookCopy records, create them
         all_books = Book.query.all()
+        created_copies = 0
         for book in all_books:
             copy_count = BookCopy.query.filter_by(book_id=book.id).count()
-            if copy_count > 0:
-                book.total_copies = copy_count
-                book.available_copies = copy_count
-            else:
-                # No BookCopy records — keep total, just reset available
-                book.available_copies = book.total_copies
+            
+            if copy_count == 0:
+                # This book has no physical copy records — create them
+                if book.access_number:
+                    access_numbers = [n.strip() for n in book.access_number.split(',') if n.strip()]
+                else:
+                    # No access numbers either — create at least 1 copy
+                    num_to_create = max(book.total_copies, 1)
+                    access_numbers = [f"B{book.id}-{i+1}" for i in range(num_to_create)]
+                
+                for acc_num in access_numbers:
+                    new_copy = BookCopy(
+                        book_id=book.id,
+                        access_number=acc_num,
+                        status='available'
+                    )
+                    db.session.add(new_copy)
+                    created_copies += 1
+                
+                copy_count = len(access_numbers)
+            
+            # Step 4: Set total and available to match physical copies
+            book.total_copies = copy_count
+            book.available_copies = copy_count
             
         db.session.commit()
-        flash('System Resync Successful: All books are now marked as available.', 'success')
+        flash(f'Resync Complete: All books available. {created_copies} missing copy records restored.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error during resync: {str(e)}', 'danger')
