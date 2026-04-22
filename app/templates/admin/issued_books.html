@@ -104,7 +104,7 @@
                                 class="btn btn-sm btn-outline-warning" title="Edit due date">
                                 <i class="bi bi-calendar-event"></i>
                             </a>
-                            <div class="btn-group position-relative" style="z-index: 10;">
+                            <div class="btn-group dropup position-relative" style="z-index: 10;">
                                 <form method="POST" action="{{ url_for('admin.return_book', issue_id=issue.id) }}"
                                     data-confirm="Confirm return of '{{ issue.book.title }}'?">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
