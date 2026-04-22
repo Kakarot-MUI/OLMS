@@ -721,13 +721,11 @@ def history():
             )
         )
         
-    # Sort by return_date so most recent resolutions appear at the top.
-    # We use a case statement so that active books (return_date is NULL) can still be sorted logically.
+    # Sort: Active books (return_date IS NULL) at top, then newest resolutions.
+    # Simple boolean sort: return_date.isnot(None) is 0 for NULL, 1 for NOT NULL.
+    # To get NULLs first, we sort this boolean ASC.
     all_issues = q.order_by(
-        db.case(
-            [(IssuedBook.return_date.isnot(None), 0)], 
-            else_=1
-        ).desc(), 
+        IssuedBook.return_date.isnot(None), 
         IssuedBook.return_date.desc(), 
         IssuedBook.issue_date.desc()
     ).all()
@@ -790,12 +788,9 @@ def export_issues():
             )
         )
 
-    # Match the UI sort order (Resolution Date DESC)
+    # Match the UI sort order (Active first, then newest resolutions)
     records = q.order_by(
-        db.case(
-            [(IssuedBook.return_date.isnot(None), 0)], 
-            else_=1
-        ).desc(), 
+        IssuedBook.return_date.isnot(None),
         IssuedBook.return_date.desc(), 
         IssuedBook.issue_date.desc()
     ).all()
