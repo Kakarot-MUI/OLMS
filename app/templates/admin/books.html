@@ -72,7 +72,7 @@
                             {% if copies_list | length > 0 %}
                                 <div class="d-flex flex-wrap gap-1">
                                     {% for copy in copies_list %}
-                                        <span class="badge {{ 'bg-primary' if copy.status == 'available' else 'bg-danger' }}" title="Access #: {{ copy.access_number }} ({{ copy.status }})">{{ copy.access_number }}</span>
+                                        <span class="badge {{ 'bg-primary' if copy.status == 'available' else ('bg-dark' if copy.status == 'lost' else 'bg-danger') }}" title="Access #: {{ copy.access_number }} ({{ copy.status }})">{{ copy.access_number }}</span>
                                     {% endfor %}
                                 </div>
                             {% elif book.access_number %}
@@ -151,7 +151,7 @@
                         {% set all_copies = book.copies.all() %}
                         {% if all_copies | length > 0 %}
                             {% for copy in all_copies %}
-                                <span class="badge {{ 'bg-primary' if copy.status == 'available' else 'bg-danger' }} text-xs" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
+                                <span class="badge {{ 'bg-primary' if copy.status == 'available' else ('bg-dark' if copy.status == 'lost' else 'bg-danger') }} text-xs" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
                                     {{ copy.access_number }}
                                 </span>
                             {% endfor %}

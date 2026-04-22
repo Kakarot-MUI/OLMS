@@ -333,12 +333,18 @@ def resolve_lost_damaged(issue_id):
     if resolution_type == 'lost':
         if book.total_copies > 0:
             book.total_copies -= 1
+        # Mark the physical copy as lost (or delete it)
+        if issue.copy:
+            issue.copy.status = 'lost'
         issue.status = 'lost'
         flash_msg = f"Book officially marked as LOST. Total inventory reduced by 1. ₹{fine_amount} fine applied to {issue.user.name}."
     else:
         # If it's just damaged but still in the library's possession
         if book.available_copies < book.total_copies:
             book.available_copies += 1
+        # Return the copy back to available
+        if issue.copy:
+            issue.copy.status = 'available'
         issue.status = 'damaged'
         flash_msg = f"Book marked as DAMAGED. Returned to inventory. ₹{fine_amount} fine applied to {issue.user.name}."
         
