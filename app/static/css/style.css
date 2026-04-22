@@ -647,9 +647,14 @@ a:hover {
 }
 
 .badge-lost_replaced {
-    background: #f1f5f9;
+    background: #e2e8f0; /* Darker, clearly visible grey */
     color: #475569;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #94a3b8;
+}
+
+.badge-lost {
+    background: #94a3b8; /* Solid visible grey */
+    color: #ffffff;
 }
 
 .badge-damaged_replaced {

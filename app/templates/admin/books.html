@@ -151,12 +151,12 @@
                         {% set all_copies = book.copies.all() %}
                         {% if all_copies | length > 0 %}
                             {% for copy in all_copies %}
-                                {% set badge_class = 'bg-primary' if copy.status == 'available' 
-                                               else 'bg-secondary' if copy.status == 'lost' 
-                                               else 'bg-danger' if copy.status == 'issued'
-                                               else 'bg-warning text-dark' if copy.status == 'damaged'
-                                               else 'bg-secondary' %}
-                                <span class="badge {{ badge_class }} text-xs" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
+                                {% set badge_style = 'background: #4f46e5; color: white;' if copy.status == 'available' 
+                                               else 'background: #64748b; color: white;' if copy.status == 'lost' 
+                                               else 'background: #ef4444; color: white;' if copy.status == 'issued'
+                                               else 'background: #f59e0b; color: black;' if copy.status == 'damaged'
+                                               else 'background: #94a3b8; color: white;' %}
+                                <span class="badge text-xs" style="{{ badge_style }}" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
                                     {{ copy.access_number }}
                                 </span>
                             {% endfor %}
