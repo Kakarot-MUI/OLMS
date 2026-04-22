@@ -15,10 +15,13 @@ def create_backup():
     
     db_name = os.getenv('DB_NAME', 'olms_db')
     db_user = os.getenv('DB_USER', 'root')
-    db_pass = os.getenv('DB_PASSWORD', '')
+    db_pass = os.getenv('DB_PASSWORD')
     
     print(f"--- Starting Backup: {timestamp} ---")
-
+    
+    if not db_pass:
+        print("⚠️  Warning: No 'DB_PASSWORD' found in .env file. Attempting connection without password...")
+    
     # 2. Database Backup (MySQL Dump)
     sql_file = os.path.join(backup_folder, f"{db_name}_dump.sql")
     print(f"Dumping database '{db_name}'...")
@@ -28,10 +31,11 @@ def create_backup():
     
     try:
         # Construct the mysqldump command
+        # Use -p without space for the password if it exists
         cmd = [
             mysqldump_path,
             f'--user={db_user}',
-            f'--password={db_pass}',
+            f'--password={db_pass}' if db_pass else '--password=',
             db_name
         ]
         with open(sql_file, 'w') as f:
