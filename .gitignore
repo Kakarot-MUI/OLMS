@@ -7,4 +7,9 @@ instance/
 backups/
 *.zip
 *.sql
+olms.db
+*.db
+*.sqlite
+olms_report.html
+olms_research_paper*.html
 .gemini/
