@@ -310,24 +310,32 @@ def clear_all_issues():
 def resync_inventory():
     """Emergency Tool: Resync all physical copies and available counts."""
     try:
-        # 1. Reset all physical copies to available
         from app.models import BookCopy, Book, IssuedBook
-        BookCopy.query.update({BookCopy.status: 'available'})
         
-        # 2. Recalculate Book available/total copies based on physical records
+        # 1. Reset ALL physical copies to 'available'
+        BookCopy.query.update(
+            {BookCopy.status: 'available'},
+            synchronize_session=False
+        )
+        
+        # 2. Mark ALL active/overdue issues as 'returned'
+        IssuedBook.query.filter(
+            IssuedBook.status.in_(['issued', 'overdue'])
+        ).update(
+            {IssuedBook.status: 'returned'},
+            synchronize_session=False
+        )
+        
+        # 3. Recalculate every Book's available/total copies
         all_books = Book.query.all()
         for book in all_books:
-            count = BookCopy.query.filter_by(book_id=book.id).count()
-            if count > 0:
-                # Book has physical copy records — sync from them
-                book.total_copies = count
-                book.available_copies = count
+            copy_count = BookCopy.query.filter_by(book_id=book.id).count()
+            if copy_count > 0:
+                book.total_copies = copy_count
+                book.available_copies = copy_count
             else:
-                # Book has no BookCopy records — just make all copies available
+                # No BookCopy records — keep total, just reset available
                 book.available_copies = book.total_copies
-            
-        # 3. Mark all active issues as returned to match physical availability
-        IssuedBook.query.filter(IssuedBook.status.in_(['issued', 'overdue'])).update({'status': 'returned'})
             
         db.session.commit()
         flash('System Resync Successful: All books are now marked as available.', 'success')
