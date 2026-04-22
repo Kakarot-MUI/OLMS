@@ -318,8 +318,13 @@ def resync_inventory():
         all_books = Book.query.all()
         for book in all_books:
             count = BookCopy.query.filter_by(book_id=book.id).count()
-            book.total_copies = count
-            book.available_copies = count
+            if count > 0:
+                # Book has physical copy records — sync from them
+                book.total_copies = count
+                book.available_copies = count
+            else:
+                # Book has no BookCopy records — just make all copies available
+                book.available_copies = book.total_copies
             
         # 3. Mark all active issues as returned to match physical availability
         IssuedBook.query.filter(IssuedBook.status.in_(['issued', 'overdue'])).update({'status': 'returned'})
