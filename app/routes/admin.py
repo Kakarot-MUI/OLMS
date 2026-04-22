@@ -311,7 +311,7 @@ def resync_inventory():
     """Emergency Tool: Resync all physical copies and available counts."""
     try:
         # 1. Reset all physical copies to available
-        from app.models import BookCopy, Book
+        from app.models import BookCopy, Book, IssuedBook
         BookCopy.query.update({BookCopy.status: 'available'})
         
         # 2. Recalculate Book available/total copies based on physical records
@@ -320,6 +320,9 @@ def resync_inventory():
             count = BookCopy.query.filter_by(book_id=book.id).count()
             book.total_copies = count
             book.available_copies = count
+            
+        # 3. Mark all active issues as returned to match physical availability
+        IssuedBook.query.filter(IssuedBook.status.in_(['issued', 'overdue'])).update({'status': 'returned'})
             
         db.session.commit()
         flash('System Resync Successful: All books are now marked as available.', 'success')
@@ -344,6 +347,15 @@ def resolve_lost_damaged(issue_id):
     
     try:
         fine_amount = float(fine_amount_str)
+    except ValueError:
+        flash('Invalid fine amount.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+        
+    if resolution_type not in ['lost', 'damaged']:
+        flash('Invalid resolution type.', 'danger')
+        return redirect(url_for('admin.issued_books'))
+        
+    book = issue.book
     
     # If the book is completely lost, it permanently leaves inventory
     if resolution_type == 'lost':
