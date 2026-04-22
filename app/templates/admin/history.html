@@ -24,12 +24,110 @@
             </div>
         </form>
 
-        <a href="{{ url_for('admin.export_issues', q=search_query) }}"
-            class="btn-export" title="Export all records to Excel">
+        <button type="button" class="btn-export" data-bs-toggle="modal" data-bs-target="#exportModal" title="Export records by date range">
             <i class="bi bi-download"></i>Export
-        </a>
+        </button>
     </div>
 </div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:var(--radius); border:none; box-shadow:var(--shadow-lg);">
+            <div class="modal-header px-4 pt-4 border-0">
+                <h5 class="modal-title fw-700" id="exportModalLabel"><i class="bi bi-file-earmark-spreadsheet-fill me-2 text-primary"></i>Export History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <p class="text-muted small mb-4">Select a date range and filters to generate your Excel-compatible CSV report.</p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="export_start" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="export_start" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="export_end" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="export_end" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="export_status" class="form-label">Status Filter</label>
+                    <select class="form-select" id="export_status">
+                        <option value="">All Transactions</option>
+                        <option value="returned">Returned (Normal)</option>
+                        <option value="lost">Lost (Pending replacement)</option>
+                        <option value="damaged">Damaged (Pending replacement)</option>
+                        <option value="lost_replaced">Lost (Closed/Replaced)</option>
+                        <option value="damaged_replaced">Damaged (Closed/Replaced)</option>
+                    </select>
+                </div>
+
+                <div id="export-preview" class="text-center py-2" style="display:none;">
+                    <span class="badge bg-primary-subtle text-primary" style="font-size:0.85rem; padding:0.5rem 1rem; border-radius:999px;">
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i> <span id="export-summary"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer px-4 pb-4 border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" class="btn-export" id="exportDownloadBtn" style="pointer-events:none; opacity:0.5; text-decoration:none;">
+                    <i class="bi bi-download me-1"></i> Download CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const startEl = document.getElementById('export_start');
+        const endEl = document.getElementById('export_end');
+        const statusEl = document.getElementById('export_status');
+        const downloadBtn = document.getElementById('exportDownloadBtn');
+        const preview = document.getElementById('export-preview');
+        const summary = document.getElementById('export-summary');
+        const baseUrl = "{{ url_for('admin.export_issues') }}";
+
+        function updateExport() {
+            const s = startEl.value;
+            const e = endEl.value;
+            const status = statusEl.value;
+
+            if (s && e) {
+                if (new Date(e) < new Date(s)) {
+                    downloadBtn.style.pointerEvents = 'none';
+                    downloadBtn.style.opacity = '0.5';
+                    preview.style.display = 'none';
+                    return;
+                }
+
+                // Build URL
+                const params = new URLSearchParams();
+                params.set('start_date', s);
+                params.set('end_date', e);
+                if (status) params.set('status', status);
+                
+                downloadBtn.href = baseUrl + '?' + params.toString();
+                downloadBtn.style.pointerEvents = 'auto';
+                downloadBtn.style.opacity = '1';
+
+                const rangeText = new Date(s).toLocaleDateString() + ' - ' + new Date(e).toLocaleDateString();
+                summary.textContent = `Ready to export ${status || 'all'} records`;
+                preview.style.display = 'block';
+            } else {
+                downloadBtn.style.pointerEvents = 'none';
+                downloadBtn.style.opacity = '0.5';
+                preview.style.display = 'none';
+            }
+        }
+
+        startEl.addEventListener('change', updateExport);
+        endEl.addEventListener('change', updateExport);
+        statusEl.addEventListener('change', updateExport);
+    })();
+</script>
 
 <!-- Stats -->
 <div class="row g-3 mb-4">
