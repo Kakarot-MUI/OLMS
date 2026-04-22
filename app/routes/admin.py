@@ -775,7 +775,7 @@ def export_issues():
 
     if status_filter == 'overdue':
         q = q.filter(IssuedBook.status == 'overdue')
-    elif status_filter in ('issued', 'returned', 'lost', 'damaged'):
+    elif status_filter in ('issued', 'returned', 'lost', 'damaged', 'lost_replaced', 'damaged_replaced'):
         q = q.filter(IssuedBook.status == status_filter)
 
     if search_query:
@@ -785,16 +785,25 @@ def export_issues():
                 User.name.ilike(term),
                 User.roll_number.ilike(term),
                 Book.title.ilike(term),
-                IssuedBook.issue_code.ilike(term)
+                IssuedBook.issue_code.ilike(term),
+                IssuedBook.status.ilike(term)
             )
         )
 
-    records = q.order_by(IssuedBook.issue_date.desc()).all()
+    # Match the UI sort order (Resolution Date DESC)
+    records = q.order_by(
+        db.case(
+            [(IssuedBook.return_date.isnot(None), 0)], 
+            else_=1
+        ).desc(), 
+        IssuedBook.return_date.desc(), 
+        IssuedBook.issue_date.desc()
+    ).all()
 
     headers = [
-        'Access Number', 'Student Name', 'Roll Number', 'Department',
+        'Issue Code', 'Access Number', 'Student Name', 'Roll Number', 'Department',
         'Division', 'Semester', 'Book Title', 'Author',
-        'Issue Date', 'Due Date', 'Return Date', 'Status', 'Fine', 'Fine Paid'
+        'Issue Date', 'Due Date', 'Resolution Date', 'Status', 'Fine Amount', 'Payment Status'
     ]
 
     si = StringIO()
@@ -802,7 +811,15 @@ def export_issues():
     writer.writerow(headers)
 
     for r in records:
+        # Convert status to human-readable format
+        display_status = r.status.capitalize()
+        if r.status == 'lost_replaced':
+            display_status = 'Lost (Replaced)'
+        elif r.status == 'damaged_replaced':
+            display_status = 'Damaged (Replaced)'
+
         writer.writerow([
+            r.issue_code,
             r.book.access_number or '',
             r.user.name,
             r.user.roll_number or '',
@@ -813,10 +830,10 @@ def export_issues():
             r.book.author,
             r.issue_date.strftime('%Y-%m-%d') if r.issue_date else '',
             r.due_date.strftime('%Y-%m-%d') if r.due_date else '',
-            r.return_date.strftime('%Y-%m-%d') if r.return_date else '',
-            r.status.capitalize(),
+            r.return_date.strftime('%Y-%m-%d %H:%M') if r.return_date else 'Active',
+            display_status,
             r.fine_amount if r.fine_amount else 0,
-            'Yes' if r.fine_paid else ('No' if r.fine_amount and r.fine_amount > 0 else '-'),
+            'Paid' if r.fine_paid else ('Pending' if r.fine_amount and r.fine_amount > 0 else '-'),
         ])
 
     # Build descriptive filename
