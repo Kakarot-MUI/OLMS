@@ -23,11 +23,13 @@ def create_backup():
     sql_file = os.path.join(backup_folder, f"{db_name}_dump.sql")
     print(f"Dumping database '{db_name}'...")
     
+    # Path found on your system
+    mysqldump_path = r"C:\Program Files\MySQL\MySQL Server 9.6\bin\mysqldump.exe"
+    
     try:
         # Construct the mysqldump command
-        # Note: If mysqldump is not in your PATH, you may need to provide full path
         cmd = [
-            'mysqldump',
+            mysqldump_path,
             f'--user={db_user}',
             f'--password={db_pass}',
             db_name
