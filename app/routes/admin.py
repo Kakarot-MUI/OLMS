@@ -305,6 +305,31 @@ def clear_all_issues():
     return redirect(url_for('admin.issued_books'))
 
 
+@admin_bp.route('/system/resync-inventory', methods=['POST'])
+@admin_required
+def resync_inventory():
+    """Emergency Tool: Resync all physical copies and available counts."""
+    try:
+        # 1. Reset all physical copies to available
+        from app.models import BookCopy, Book
+        BookCopy.query.update({BookCopy.status: 'available'})
+        
+        # 2. Recalculate Book available/total copies based on physical records
+        all_books = Book.query.all()
+        for book in all_books:
+            count = BookCopy.query.filter_by(book_id=book.id).count()
+            book.total_copies = count
+            book.available_copies = count
+            
+        db.session.commit()
+        flash('System Resync Successful: All books are now marked as available.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error during resync: {str(e)}', 'danger')
+        
+    return redirect(url_for('admin.dashboard'))
+
+
 @admin_bp.route('/resolve/<int:issue_id>', methods=['POST'])
 @admin_required
 def resolve_lost_damaged(issue_id):
@@ -319,15 +344,6 @@ def resolve_lost_damaged(issue_id):
     
     try:
         fine_amount = float(fine_amount_str)
-    except ValueError:
-        flash('Invalid fine amount.', 'danger')
-        return redirect(url_for('admin.issued_books'))
-        
-    if resolution_type not in ['lost', 'damaged']:
-        flash('Invalid resolution type.', 'danger')
-        return redirect(url_for('admin.issued_books'))
-        
-    book = issue.book
     
     # If the book is completely lost, it permanently leaves inventory
     if resolution_type == 'lost':
