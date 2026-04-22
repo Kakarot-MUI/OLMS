@@ -114,18 +114,29 @@ def create_app(config_name='default'):
     return app
 
 def _create_default_admin():
-    """Create a default admin user if none exists."""
+    """Create an initial admin user using environment variables if none exists."""
     from app.models import User
+    import os
+    
+    # Get credentials from environment or use a more secure random fallback
+    admin_email = os.environ.get('ADMIN_EMAIL', 'admin@olms.com')
+    admin_password = os.environ.get('ADMIN_PASSWORD') # No default password for security
+    
+    if not admin_password:
+        # If no password is provided in .env, we don't create a default admin with a weak password.
+        # This forces the owner to set a password in .env before first run.
+        return
+
     try:
         admin = User.query.filter_by(role='admin').first()
         if not admin:
             admin = User(
                 name='Administrator',
-                email='admin@olms.com',
+                email=admin_email,
                 role='admin',
                 status='active',
             )
-            admin.set_password('Admin@123')
+            admin.set_password(admin_password)
             db.session.add(admin)
             db.session.commit()
     except Exception:

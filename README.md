@@ -109,14 +109,15 @@ copy .env.example .env       # Windows
 # cp .env.example .env       # macOS/Linux
 ```
 
-Edit `.env` with your MySQL credentials:
+Edit `.env` with your MySQL credentials and set your initial Admin account:
 ```
 DB_USER=root
 DB_PASSWORD=your_password
-DB_HOST=localhost
-DB_PORT=3306
 DB_NAME=olms_db
-SECRET_KEY=your-secret-key-here
+
+# Initial Admin Setup (First run only)
+ADMIN_EMAIL=admin@yourlibrary.com
+ADMIN_PASSWORD=CreateAStrongPasswordHere
 ```
 
 ### 3. Create the Database
@@ -141,12 +142,8 @@ python run.py
 
 Visit `http://localhost:5000` in your browser.
 
-### Default Admin Account
-
-| Field    | Value          |
-|----------|----------------|
-| Email    | admin@olms.com |
-| Password | Admin@123      |
+### Admin Access
+Once the application is running and the database is initialized, log in using the `ADMIN_EMAIL` and `ADMIN_PASSWORD` you configured in the `.env` file. Ensure you change your password immediately from the Profile page.
 
 ---
 
