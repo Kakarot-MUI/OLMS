@@ -423,7 +423,13 @@ def fines():
     search_query = request.args.get('search', '', type=str)
     page = request.args.get('page', 1, type=int)
 
-    query = IssuedBook.query.filter(IssuedBook.fine_amount > 0, IssuedBook.fine_paid == False)
+    # Show issues that either have unpaid fines OR are lost/damaged and not yet replaced
+    query = IssuedBook.query.filter(
+        db.or_(
+            IssuedBook.fine_paid == False,
+            IssuedBook.status.in_(['lost', 'damaged'])
+        )
+    )
     
     if search_query:
         search_term = f"%{search_query}%"

@@ -91,26 +91,42 @@
                     </td>
                     <td>{{ issue.return_date.strftime('%b %d, %Y') if issue.return_date else '—' }}</td>
                     <td>
-                        <span class="fw-bold text-danger fs-5">₹{{ issue.fine_amount }}</span>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold text-danger fs-5">₹{{ issue.fine_amount }}</span>
+                            {% if issue.fine_paid %}
+                                <span class="badge bg-success-soft text-success border border-success" style="font-size: 0.65rem; width: fit-content; background: #f0fdf4;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Paid
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning-soft text-warning border border-warning" style="font-size: 0.65rem; width: fit-content; background: #fffbeb;">
+                                    <i class="bi bi-clock-history me-1"></i>Pending
+                                </span>
+                            {% endif %}
+                        </div>
                     </td>
                     <td class="text-end">
-                        <div class="d-flex gap-1 justify-content-end">
+                        <div class="d-flex gap-1 justify-content-end align-items-center">
                             {% if issue.status == 'lost' or issue.status == 'damaged' %}
-                            <form method="POST" action="{{ url_for('admin.replace_book', issue_id=issue.id) }}"
-                                onsubmit="return confirm('Confirm: A new replacement copy of \'{{ issue.book.title }}\' has been added to the physical library?')">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">
-                                    <i class="bi bi-arrow-repeat me-1"></i>Book Replaced
-                                </button>
-                            </form>
+                                <form method="POST" action="{{ url_for('admin.replace_book', issue_id=issue.id) }}"
+                                    onsubmit="return confirm('Confirm: A new replacement copy of \'{{ issue.book.title }}\' has been added to the physical library?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Book Replaced
+                                    </button>
+                                </form>
                             {% endif %}
-                            <form method="POST" action="{{ url_for('admin.clear_fine', issue_id=issue.id) }}"
-                                data-confirm="Confirm ₹{{ issue.fine_amount }} fine has been PAID by {{ issue.user.name }} to unlock their account?">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-success fw-bold px-3">
-                                    <i class="bi bi-check2-circle me-1"></i>Clear Debt
-                                </button>
-                            </form>
+                            
+                            {% if not issue.fine_paid %}
+                                <form method="POST" action="{{ url_for('admin.clear_fine', issue_id=issue.id) }}"
+                                    data-confirm="Confirm ₹{{ issue.fine_amount }} fine has been PAID by {{ issue.user.name }} to unlock their account?">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success fw-bold px-3">
+                                        <i class="bi bi-check2-circle me-1"></i>Clear Debt
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-success small fw-bold"><i class="bi bi-cash-stack me-1"></i>Debt Cleared</span>
+                            {% endif %}
                         </div>
                         <script>
                             document.querySelectorAll('[data-confirm]').forEach(form => {

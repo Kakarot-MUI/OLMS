@@ -151,7 +151,12 @@
                         {% set all_copies = book.copies.all() %}
                         {% if all_copies | length > 0 %}
                             {% for copy in all_copies %}
-                                <span class="badge {{ 'bg-primary' if copy.status == 'available' else ('bg-dark' if copy.status == 'lost' else 'bg-danger') }} text-xs" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
+                                {% set badge_class = 'bg-primary' if copy.status == 'available' 
+                                               else 'bg-secondary' if copy.status == 'lost' 
+                                               else 'bg-danger' if copy.status == 'issued'
+                                               else 'bg-warning text-dark' if copy.status == 'damaged'
+                                               else 'bg-secondary' %}
+                                <span class="badge {{ badge_class }} text-xs" title="Access #: {{ copy.access_number }} ({{ copy.status }})">
                                     {{ copy.access_number }}
                                 </span>
                             {% endfor %}
