@@ -123,21 +123,26 @@
         let tomSelectBook = bookSelect.tomselect;
 
         tomSelectBook.on('change', function(value) {
+            // Clear existing options
             copySelect.innerHTML = '<option value="">Select a specific copy...</option>';
+            document.getElementById('copy-error').style.display = 'none';
+
             if (value && copiesMap[value]) {
                 const copies = copiesMap[value];
                 if (copies.length > 0) {
                     copies.forEach(copy => {
                         const option = document.createElement('option');
-                        option.value = copy.id;
+                        option.value = String(copy.id); // Ensure string ID
                         option.textContent = 'Access # ' + copy.access_number;
                         copySelect.appendChild(option);
                     });
+                    
                     copySelectContainer.style.display = 'block';
                     copySelect.required = true;
-                    // Auto-select if only 1 copy available
+
+                    // Auto-select if only 1 copy available and visually focus it
                     if(copies.length === 1) {
-                        copySelect.value = copies[0].id;
+                        copySelect.value = String(copies[0].id);
                     }
                 } else {
                     copySelectContainer.style.display = 'none';
@@ -148,14 +153,24 @@
                  copySelect.required = false;
             }
         });
+
+        // Clear error as soon as user picks a copy
+        copySelect.addEventListener('change', function() {
+            if (this.value) {
+                document.getElementById('copy-error').style.display = 'none';
+            }
+        });
         
         // Form validate specific copy
         document.querySelector('form').addEventListener('submit', function(e) {
-            if(copySelectContainer.style.display === 'block' && !copySelect.value) {
+            const containerVisible = copySelectContainer.style.display === 'block';
+            if(containerVisible && !copySelect.value) {
                 e.preventDefault();
                 document.getElementById('copy-error').style.display = 'block';
+                copySelect.classList.add('is-invalid');
             } else {
                 document.getElementById('copy-error').style.display = 'none';
+                copySelect.classList.remove('is-invalid');
             }
         });
     });
