@@ -745,19 +745,22 @@ def history():
 @admin_bp.route('/delete-issue/<int:issue_id>', methods=['POST'])
 @admin_required
 def delete_issue(issue_id):
-    """Delete a specific issue record permanently and restore inventory if active."""
+    """Delete a specific issue record permanently and restore inventory/copy status."""
     issue = IssuedBook.query.get_or_404(issue_id)
     book_title = issue.book.title
-    student_name = issue.user.name
     
-    # If the book was not yet returned, put it back in the library stock
+    # 1. Restore the general book count if it was out
     if issue.status in ['issued', 'overdue']:
         issue.book.available_copies += 1
+        
+    # 2. Restore the specific physical copy status so it turns green in the UI
+    if issue.copy:
+        issue.copy.status = 'available'
     
     db.session.delete(issue)
     db.session.commit()
     
-    flash(f'Record for "{book_title}" deleted. One copy has been restored to library inventory.', 'success')
+    flash(f'Record for "{book_title}" deleted. Copy is now available (Green).', 'success')
     return redirect(request.referrer or url_for('admin.issued_books'))
 
 
