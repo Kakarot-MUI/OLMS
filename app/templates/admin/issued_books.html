@@ -137,6 +137,14 @@
                                     </li>
                                 </ul>
                             </div>
+                            <!-- Delete Individual Record -->
+                            <form method="POST" action="{{ url_for('admin.delete_issue', issue_id=issue.id) }}"
+                                data-confirm="PERMANENT DELETE: Are you sure you want to remove the record for '{{ issue.book.title }}' issued to {{ issue.user.name }}? This cannot be undone.">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Record">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                             <!-- Hidden forms for Lost/Damaged actions -->
                             <form id="resolve-form-{{ issue.id }}" method="POST"
                                 action="{{ url_for('admin.resolve_lost_damaged', issue_id=issue.id) }}"

@@ -742,6 +742,21 @@ def history():
                            total=total, active=active, returned=returned, overdue=overdue, search_query=search_query)
 
 
+@admin_bp.route('/delete-issue/<int:issue_id>', methods=['POST'])
+@admin_required
+def delete_issue(issue_id):
+    """Delete a specific issue record permanently."""
+    issue = IssuedBook.query.get_or_404(issue_id)
+    book_title = issue.book.title
+    student_name = issue.user.name
+    
+    db.session.delete(issue)
+    db.session.commit()
+    
+    flash(f'Record for "{book_title}" issued to {student_name} has been deleted permanently.', 'success')
+    return redirect(request.referrer or url_for('admin.issued_books'))
+
+
 @admin_bp.route('/export/issues')
 @admin_required
 def export_issues():
